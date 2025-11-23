@@ -76,10 +76,10 @@ class ProductListResponse(BaseModel):
 # Filters
 class ProductFilters(BaseModel):
     """Фильтры для товаров"""
-    category_id: Optional[str] = None
-    min_price: Optional[Decimal] = None
-    max_price: Optional[Decimal] = None
-    min_rating: Optional[Decimal] = None
+    category_id: Optional[int] = None
+    min_price: Optional[float] = None
+    max_price: Optional[float] = None
+    min_rating: Optional[float] = None
     in_stock: Optional[bool] = None
     search: Optional[str] = None
     sort_by: Optional[str] = Field(default="created_at", pattern="^(price|rating|created_at|name)$")
