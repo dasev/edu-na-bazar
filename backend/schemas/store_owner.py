@@ -1,9 +1,10 @@
 """
 Store Owner schemas
 """
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, field_serializer
 from typing import Optional
 from datetime import datetime
+from uuid import UUID
 import re
 
 
@@ -98,19 +99,13 @@ class StoreOwnerResponse(BaseModel):
     
     class Config:
         from_attributes = True
-        
-    @classmethod
-    def model_validate(cls, obj):
-        """Преобразуем UUID в строки"""
-        if hasattr(obj, '__dict__'):
-            data = {}
-            for key, value in obj.__dict__.items():
-                if key.startswith('_'):
-                    continue
-                # Преобразуем UUID в строку
-                if hasattr(value, 'hex'):  # UUID объект
-                    data[key] = str(value)
-                else:
-                    data[key] = value
-            return super().model_validate(data)
-        return super().model_validate(obj)
+        json_encoders = {
+            UUID: str
+        }
+    
+    @field_serializer('id', 'owner_id')
+    def serialize_uuid(self, value):
+        """Преобразуем UUID в строку"""
+        if isinstance(value, UUID):
+            return str(value)
+        return value
