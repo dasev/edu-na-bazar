@@ -4,7 +4,6 @@ Category schemas
 from pydantic import BaseModel, Field
 from typing import Optional
 from datetime import datetime
-from uuid import UUID
 
 
 # Request schemas
@@ -31,13 +30,11 @@ class CategoryUpdate(BaseModel):
 # Response schemas
 class CategoryResponse(BaseModel):
     """Схема ответа с категорией"""
-    id: UUID
+    id: int
     name: str
-    slug: str
-    icon: Optional[str]
     description: Optional[str]
-    parent_id: Optional[UUID]
-    sort_order: int
+    image: Optional[str]
+    parent_id: Optional[int]
     created_at: datetime
     updated_at: datetime
     

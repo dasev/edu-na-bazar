@@ -24,7 +24,7 @@ async def get_categories(db: AsyncSession = Depends(get_db)):
 
 
 @router.get("/{category_id}", response_model=CategoryResponse)
-async def get_category(category_id: str, db: AsyncSession = Depends(get_db)):
+async def get_category(category_id: int, db: AsyncSession = Depends(get_db)):
     """Получить категорию по ID"""
     result = await db.execute(
         select(Category).where(Category.id == category_id)
@@ -60,7 +60,7 @@ async def create_category(
 
 @router.put("/{category_id}", response_model=CategoryResponse)
 async def update_category(
-    category_id: str,
+    category_id: int,
     category_data: CategoryUpdate,
     db: AsyncSession = Depends(get_db)
 ):
@@ -85,7 +85,7 @@ async def update_category(
 
 
 @router.delete("/{category_id}", status_code=204)
-async def delete_category(category_id: str, db: AsyncSession = Depends(get_db)):
+async def delete_category(category_id: int, db: AsyncSession = Depends(get_db)):
     """Удалить категорию"""
     result = await db.execute(
         select(Category).where(Category.id == category_id)
