@@ -19,26 +19,26 @@ class StoreOwner(Base):
     owner_id = Column(UUID(as_uuid=True), ForeignKey('users.id'), nullable=False, index=True)
     
     # Реквизиты
-    inn = Column(String(12), nullable=False, unique=True, index=True)
-    kpp = Column(String(9), nullable=True)
-    ogrn = Column(String(15), nullable=True)
+    inn = Column(Text, nullable=False, unique=True, index=True)
+    kpp = Column(Text, nullable=True)
+    ogrn = Column(Text, nullable=True)
     
     # Названия
-    name = Column(String(500), nullable=False)  # Короткое название
-    legal_name = Column(String(1000), nullable=False)  # Полное юридическое название
+    name = Column(Text, nullable=False)
+    legal_name = Column(Text, nullable=False)
     
     # Контакты
     address = Column(Text, nullable=False)
-    phone = Column(String(20), nullable=True)
-    email = Column(String(255), nullable=True)
+    phone = Column(Text, nullable=True)
+    email = Column(Text, nullable=True)
     
     # Описание и медиа
     description = Column(Text, nullable=True)
-    logo = Column(String(500), nullable=True)  # URL логотипа
-    banner = Column(String(500), nullable=True)  # URL баннера
+    logo = Column(Text, nullable=True)
+    banner = Column(Text, nullable=True)
     
-    # Статус (используем VARCHAR вместо ENUM для совместимости)
-    status = Column(String(20), default='pending', nullable=False, index=True)
+    # Статус
+    status = Column(Text, default='pending', nullable=False, index=True)
     
     # Timestamps
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
