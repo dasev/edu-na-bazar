@@ -2,27 +2,26 @@
 Cart model
 """
 from datetime import datetime
-from sqlalchemy import Column, DateTime, Integer, ForeignKey
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy import Column, DateTime, BigInteger, ForeignKey
 from sqlalchemy.orm import relationship
-import uuid
 from database import Base
 
 
 class CartItem(Base):
     """CartItem model - товары в корзине"""
     __tablename__ = "cart_items"
+    __table_args__ = {'schema': 'market'}
     
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id = Column(BigInteger, primary_key=True, autoincrement=True)
     
     # Пользователь
-    user_id = Column(UUID(as_uuid=True), ForeignKey('users.id'), nullable=False, index=True)
+    user_id = Column(BigInteger, ForeignKey('config.users.id'), nullable=False, index=True)
     
     # Товар
-    product_id = Column(UUID(as_uuid=True), ForeignKey('products.id'), nullable=False, index=True)
+    product_id = Column(BigInteger, ForeignKey('market.products.id'), nullable=False, index=True)
     
     # Количество
-    quantity = Column(Integer, nullable=False, default=1)
+    quantity = Column(BigInteger, nullable=False, default=1)
     
     # Timestamps
     created_at = Column(DateTime, default=datetime.utcnow)
