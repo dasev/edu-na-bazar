@@ -3,9 +3,8 @@
 -- Удаляем таблицу если существует
 DROP TABLE IF EXISTS store_owners CASCADE;
 
--- Удаляем тип если существует и создаем заново
+-- Удаляем тип если существует
 DROP TYPE IF EXISTS store_status CASCADE;
-CREATE TYPE store_status AS ENUM ('pending', 'active', 'suspended', 'rejected');
 
 CREATE TABLE store_owners (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -21,7 +20,7 @@ CREATE TABLE store_owners (
     description TEXT,
     logo VARCHAR(500),
     banner VARCHAR(500),
-    status store_status NOT NULL DEFAULT 'pending',
+    status VARCHAR(20) NOT NULL DEFAULT 'pending',
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
