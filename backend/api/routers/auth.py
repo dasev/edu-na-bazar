@@ -14,7 +14,7 @@ from services.sms_service import SMSService
 from services.jwt_service import JWTService
 
 logger = logging.getLogger(__name__)
-router = APIRouter(prefix="/api/auth", tags=["auth"])
+router = APIRouter()
 
 
 @router.post("/send-sms", response_model=SMSResponse)

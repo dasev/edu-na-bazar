@@ -1,19 +1,43 @@
 """
 API роутер для работы с изображениями
 """
-from fastapi import APIRouter, UploadFile, File, HTTPException, Depends
+from fastapi import APIRouter, UploadFile, File, HTTPException, Depends, Header
 from fastapi.responses import FileResponse
-from typing import List
+from typing import List, Optional
 from pathlib import Path
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 
 from database import get_db
 from services.image_service import image_service
-from services.jwt_service import get_current_user
+from services.jwt_service import JWTService
 from models.user import User
 
 
-router = APIRouter(prefix="/images", tags=["Images"])
+async def get_current_user(
+    authorization: Optional[str] = Header(None),
+    db: AsyncSession = Depends(get_db)
+) -> User:
+    """Получить текущего пользователя из токена"""
+    if not authorization or not authorization.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="Требуется авторизация")
+    
+    token = authorization.replace("Bearer ", "")
+    user_id = JWTService.get_user_id_from_token(token)
+    
+    if not user_id:
+        raise HTTPException(status_code=401, detail="Невалидный токен")
+    
+    result = await db.execute(select(User).where(User.id == user_id))
+    user = result.scalar_one_or_none()
+    
+    if not user:
+        raise HTTPException(status_code=401, detail="Пользователь не найден")
+    
+    return user
+
+
+router = APIRouter()
 
 
 @router.post("/upload")
