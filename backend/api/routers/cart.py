@@ -2,6 +2,7 @@
 Cart API router
 """
 from typing import Optional
+from uuid import UUID
 from fastapi import APIRouter, HTTPException, Depends, Header
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
@@ -37,10 +38,16 @@ async def get_current_user(
     except ValueError:
         raise HTTPException(status_code=401, detail="Неверный формат токена")
     
-    user_id = JWTService.get_user_id_from_token(token)
+    user_id_str = JWTService.get_user_id_from_token(token)
     
-    if not user_id:
+    if not user_id_str:
         raise HTTPException(status_code=401, detail="Неверный токен")
+    
+    # Конвертируем строку в UUID
+    try:
+        user_id = UUID(user_id_str)
+    except (ValueError, AttributeError):
+        raise HTTPException(status_code=401, detail="Неверный формат ID пользователя")
     
     result = await db.execute(
         select(User).where(User.id == user_id)
