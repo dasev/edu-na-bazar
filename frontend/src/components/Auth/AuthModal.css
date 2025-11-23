@@ -4,25 +4,58 @@
 
 .auth-modal__description {
   text-align: center;
-  color: var(--ozon-text-secondary);
+  color: #666;
   margin-bottom: 24px;
   line-height: 1.5;
+  font-size: 14px;
 }
 
 .auth-modal__description strong {
-  color: var(--ozon-text);
+  color: #1a1a1a;
   font-weight: 600;
 }
 
 .auth-modal__form {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 20px;
 }
 
-.auth-modal__form .dx-textbox,
+/* Группа формы */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #1a1a1a;
+}
+
+/* Стилизация TextBox */
+.auth-modal__form .dx-textbox {
+  border-radius: 12px;
+  height: 52px;
+}
+
+.auth-modal__form .dx-texteditor-input {
+  font-size: 16px;
+  padding: 0 16px;
+}
+
+.auth-modal__form .dx-texteditor.dx-state-focused {
+  border-color: #005bff;
+  box-shadow: 0 0 0 3px rgba(0, 91, 255, 0.1);
+}
+
+/* Стилизация Button */
 .auth-modal__form .dx-button {
   border-radius: 12px;
+  height: 52px;
+  font-size: 16px;
+  font-weight: 600;
 }
 
 .auth-modal__error {
@@ -70,22 +103,25 @@
 
 /* DevExtreme customization */
 .auth-modal .dx-button-default {
-  background: var(--ozon-blue) !important;
+  background: #005bff !important;
   font-weight: 600;
   font-size: 16px;
+  transition: all 0.3s ease;
 }
 
 .auth-modal .dx-button-default:hover {
-  background: var(--ozon-blue-hover) !important;
+  background: #0047cc !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 91, 255, 0.3);
 }
 
-.auth-modal .dx-textbox {
-  height: 48px;
+.auth-modal .dx-button-default:active {
+  transform: translateY(0);
 }
 
-.auth-modal .dx-texteditor-label {
-  font-weight: 500;
-  color: var(--ozon-text);
+.auth-modal .dx-button-default:disabled {
+  background: #ccc !important;
+  cursor: not-allowed;
 }
 
 .auth-modal__buttons {

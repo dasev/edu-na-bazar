@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Popup } from 'devextreme-react/popup'
 import { TextBox } from 'devextreme-react/text-box'
 import { Button } from 'devextreme-react/button'
@@ -24,6 +24,60 @@ export default function AuthModal({ visible, onClose, onSuccess }: AuthModalProp
   const [error, setError] = useState('')
   const [smsCode, setSmsCode] = useState('') // Для отображения в dev режиме
 
+  // Загружаем последний введенный номер из localStorage
+  useEffect(() => {
+    const savedPhone = localStorage.getItem('last_phone')
+    if (savedPhone && visible && step === 'phone') {
+      setPhone(savedPhone)
+    }
+  }, [visible, step])
+
+  // Форматирование номера телефона
+  const formatPhone = (value: string) => {
+    // Убираем все кроме цифр
+    const digits = value.replace(/\D/g, '')
+    
+    // Если начинается с 8, заменяем на 7
+    let formatted = digits.startsWith('8') ? '7' + digits.slice(1) : digits
+    
+    // Если не начинается с 7, добавляем
+    if (!formatted.startsWith('7')) {
+      formatted = '7' + formatted
+    }
+    
+    // Ограничиваем 11 цифрами
+    formatted = formatted.slice(0, 11)
+    
+    // Форматируем: +7 (999) 999-99-99
+    let result = '+7'
+    if (formatted.length > 1) {
+      result += ' (' + formatted.slice(1, 4)
+    }
+    if (formatted.length >= 5) {
+      result += ') ' + formatted.slice(4, 7)
+    }
+    if (formatted.length >= 8) {
+      result += '-' + formatted.slice(7, 9)
+    }
+    if (formatted.length >= 10) {
+      result += '-' + formatted.slice(9, 11)
+    }
+    
+    return result
+  }
+
+  // Получаем чистый номер для отправки на сервер
+  const getCleanPhone = (formatted: string) => {
+    const digits = formatted.replace(/\D/g, '')
+    return '+' + digits
+  }
+
+  // Обработчик изменения телефона
+  const handlePhoneChange = (value: string) => {
+    const formatted = formatPhone(value)
+    setPhone(formatted)
+  }
+
   const handleCheckPhone = async () => {
     setError('')
     
@@ -32,12 +86,17 @@ export default function AuthModal({ visible, onClose, onSuccess }: AuthModalProp
       return
     }
 
+    // Сохраняем номер в localStorage
+    localStorage.setItem('last_phone', phone)
+
     setLoading(true)
 
     try {
+      const cleanPhone = getCleanPhone(phone)
+      
       // Проверяем существует ли пользователь
       const checkResponse = await axios.post(`${API_URL}/api/auth/check-phone`, {
-        phone
+        phone: cleanPhone
       })
 
       if (checkResponse.data.exists) {
@@ -72,8 +131,10 @@ export default function AuthModal({ visible, onClose, onSuccess }: AuthModalProp
     setLoading(true)
 
     try {
+      const cleanPhone = getCleanPhone(phone)
+      
       const response = await axios.post(`${API_URL}/api/auth/send-sms`, {
-        phone,
+        phone: cleanPhone,
         full_name: step === 'register' ? fullName : undefined,
         email: step === 'register' ? email : undefined,
         address: step === 'register' ? address : undefined
@@ -102,8 +163,10 @@ export default function AuthModal({ visible, onClose, onSuccess }: AuthModalProp
     setLoading(true)
 
     try {
+      const cleanPhone = getCleanPhone(phone)
+      
       const response = await axios.post(`${API_URL}/api/auth/verify-sms`, {
-        phone,
+        phone: cleanPhone,
         code
       })
 
@@ -165,14 +228,18 @@ export default function AuthModal({ visible, onClose, onSuccess }: AuthModalProp
             </div>
 
             <div className="auth-modal__form">
-              <TextBox
-                label="Телефон"
-                placeholder="+7 (999) 123-45-67"
-                value={phone}
-                onValueChanged={(e) => setPhone(e.value)}
-                mode="tel"
-                disabled={loading}
-              />
+              <div className="form-group">
+                <label className="form-label">Телефон</label>
+                <TextBox
+                  placeholder="+7 (999) 123-45-67"
+                  value={phone}
+                  onValueChanged={(e) => handlePhoneChange(e.value)}
+                  mode="tel"
+                  disabled={loading}
+                  stylingMode="outlined"
+                  inputAttr={{ autoComplete: 'tel' }}
+                />
+              </div>
 
               {error && <div className="auth-modal__error">{error}</div>}
 
