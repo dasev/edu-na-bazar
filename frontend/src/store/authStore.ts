@@ -64,7 +64,16 @@ export const useAuthStore = create<AuthState>()(
         token: state.token,
         user: state.user,
         isAuthenticated: state.isAuthenticated
-      })
+      }),
+      onRehydrateStorage: () => (state) => {
+        // После загрузки из persist синхронизируем с localStorage
+        if (state?.token) {
+          localStorage.setItem('auth_token', state.token)
+        }
+        if (state?.user) {
+          localStorage.setItem('user', JSON.stringify(state.user))
+        }
+      }
     }
   )
 )
