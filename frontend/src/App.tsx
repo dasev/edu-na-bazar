@@ -11,6 +11,7 @@ import { OrdersPage } from './pages/Orders/OrdersPage'
 import { MyStoresPage } from './pages/MyStores/MyStoresPage'
 import { CreateStorePage } from './pages/MyStores/CreateStorePage'
 import StoreProductsPage from './pages/StoreProducts/StoreProductsPage'
+import ProductEditPage from './pages/StoreProducts/ProductEditPage'
 import { NotFoundPage } from './pages/NotFound/NotFoundPage'
 import { AboutPage } from './pages/About/AboutPage'
 import './App.css'
@@ -35,6 +36,7 @@ function App() {
               <Route path="/my-stores" element={<MyStoresPage />} />
               <Route path="/my-stores/create" element={<CreateStorePage />} />
               <Route path="/my-stores/:storeId/products" element={<StoreProductsPage />} />
+              <Route path="/my-stores/:storeId/products/:productId" element={<ProductEditPage />} />
               <Route path="/about" element={<AboutPage />} />
               <Route path="*" element={<NotFoundPage />} />
             </Routes>
