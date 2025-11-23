@@ -19,6 +19,9 @@ apiClient.interceptors.request.use(
     const token = localStorage.getItem('auth_token')
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
+      console.log('🔐 Токен добавлен в запрос:', config.url)
+    } else {
+      console.warn('⚠️ Токен отсутствует для запроса:', config.url)
     }
     return config
   },
