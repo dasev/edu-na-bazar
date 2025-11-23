@@ -7,6 +7,7 @@ import { TextArea } from 'devextreme-react/text-area'
 import { NumberBox } from 'devextreme-react/number-box'
 import { SelectBox } from 'devextreme-react/select-box'
 import { CheckBox } from 'devextreme-react/check-box'
+import { FileUploader } from 'devextreme-react/file-uploader'
 import { apiClient } from '../../api/client'
 import toast from 'react-hot-toast'
 import './ProductEditPage.css'
@@ -194,16 +195,25 @@ export default function ProductEditPage() {
               <span>{formData.in_stock ? '✅ В наличии' : '❌ Нет в наличии'}</span>
             </div>
             <div className="add-image-field">
-              <TextBox
-                placeholder="Вставьте URL изображения и нажмите Enter"
-                onValueChanged={(e) => {
-                  if (e.value && e.event?.type === 'change') {
-                    addImage(e.value)
-                    e.component.option('value', '')
+              <FileUploader
+                selectButtonText="Выбрать изображение"
+                labelText="или перетащите файл сюда"
+                accept="image/*"
+                uploadMode="instantly"
+                uploadUrl={`${apiClient.defaults.baseURL}/api/images/upload`}
+                uploadHeaders={{
+                  Authorization: `Bearer ${localStorage.getItem('token')}`
+                }}
+                onUploaded={(e) => {
+                  const response = e.request.response ? JSON.parse(e.request.response) : null
+                  if (response?.data?.url) {
+                    addImage(response.data.url)
+                    toast.success('Изображение загружено')
                   }
                 }}
-                mode="text"
-                width="100%"
+                onUploadError={() => {
+                  toast.error('Ошибка загрузки изображения')
+                }}
               />
             </div>
           </div>
