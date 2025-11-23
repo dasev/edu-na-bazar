@@ -10,6 +10,9 @@ load_dotenv()
 class Settings:
     """Application settings"""
     
+    # Environment
+    ENVIRONMENT: str = os.getenv("ENVIRONMENT", "development")  # development, production
+    
     # Database
     DATABASE_URL: str = os.getenv("DATABASE_URL", "postgresql+asyncpg://postgres:postgres@localhost:5432/edu_na_bazar?client_encoding=utf8")
     
@@ -29,6 +32,9 @@ class Settings:
     
     # Mapbox
     MAPBOX_ACCESS_TOKEN: str = os.getenv("MAPBOX_ACCESS_TOKEN", "")
+    
+    # SMS (для разработки отключаем реальную отправку)
+    SMS_ENABLED: bool = os.getenv("SMS_ENABLED", "false").lower() == "true"
 
 
 settings = Settings()

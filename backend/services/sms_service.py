@@ -8,6 +8,7 @@ from typing import Optional
 import logging
 import httpx
 from urllib.parse import urlencode
+from config import settings
 
 logger = logging.getLogger(__name__)
 
@@ -41,6 +42,8 @@ class SMSService:
         """
         Отправить SMS с кодом через SMSC.RU
         
+        В режиме разработки (SMS_ENABLED=false) просто выводит код в консоль.
+        
         Документация: https://smsc.ru/api/http/
         
         Args:
@@ -51,6 +54,19 @@ class SMSService:
             bool: Успешно ли отправлено
         """
         
+        # РЕЖИМ РАЗРАБОТКИ - просто выводим код в консоль
+        if not settings.SMS_ENABLED:
+            print(f"\n{'='*60}")
+            print(f"🔧 РЕЖИМ РАЗРАБОТКИ - SMS НЕ ОТПРАВЛЯЕТСЯ")
+            print(f"{'='*60}")
+            print(f"📱 Телефон: {phone}")
+            print(f"🔐 КОД ПОДТВЕРЖДЕНИЯ: {code}")
+            print(f"⏰ Действителен: {SMSService.CODE_EXPIRE_MINUTES} минут")
+            print(f"{'='*60}\n")
+            logger.info(f"🔧 DEV MODE: SMS code for {phone}: {code}")
+            return True
+        
+        # PRODUCTION MODE - реальная отправка через SMSC.RU
         # Убираем + из номера для SMSC
         phone_clean = phone.replace('+', '')
         
