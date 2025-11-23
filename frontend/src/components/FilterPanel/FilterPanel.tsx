@@ -98,7 +98,7 @@ export default function FilterPanel() {
             itemRender={(item) => {
               return (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  {item.icon && <span>{item.icon}</span>}
+                  {(item.image || item.icon) && <span>{item.image || item.icon}</span>}
                   <span>{item.name}</span>
                 </div>
               )
