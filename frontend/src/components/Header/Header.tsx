@@ -137,6 +137,16 @@ export default function Header() {
                         <span>Мои заказы</span>
                       </div>
                       <div 
+                        className="user-menu__item"
+                        onClick={() => {
+                          setUserMenuVisible(false)
+                          navigate('/my-stores')
+                        }}
+                      >
+                        <span className="user-menu__icon">🏪</span>
+                        <span>Мои магазины</span>
+                      </div>
+                      <div 
                         className="user-menu__item user-menu__item--danger"
                         onClick={() => {
                           setUserMenuVisible(false)
