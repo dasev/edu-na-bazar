@@ -16,9 +16,8 @@ class Category(Base):
     
     # Основная информация
     name = Column(Text, nullable=False, index=True)
-    slug = Column(Text, unique=True, nullable=False, index=True)
-    icon = Column(Text, nullable=True)  # Emoji или иконка
     description = Column(Text, nullable=True)
+    image = Column(Text, nullable=True)
     
     # Иерархия (для подкатегорий)
     parent_id = Column(BigInteger, ForeignKey('market.categories.id'), nullable=True)
