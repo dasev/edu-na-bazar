@@ -11,6 +11,7 @@ import './Header.css'
 export default function Header() {
   const navigate = useNavigate()
   const [authModalVisible, setAuthModalVisible] = useState(false)
+  const [userMenuVisible, setUserMenuVisible] = useState(false)
   const [searchValue, setSearchValue] = useState('')
   const { isAuthenticated, user, login, logout } = useAuthStore()
   const { getItemsCount, fetchCart, syncGuestCart } = useCartStore()
@@ -25,6 +26,19 @@ export default function Header() {
       })
     }
   }, [user, fetchCart, syncGuestCart])
+
+  // Закрытие меню при клике вне его
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement
+      if (userMenuVisible && !target.closest('.ozon-header__user')) {
+        setUserMenuVisible(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [userMenuVisible])
   
   const cartItemsCount = getItemsCount()
 
@@ -82,14 +96,6 @@ export default function Header() {
           </div>
           {/* Правая часть */}
           <div className="ozon-header__right">
-            {/* Заказы (только для авторизованных) */}
-            {isAuthenticated && (
-              <Link to="/orders" className="ozon-header__orders">
-                <span className="orders-icon">📦</span>
-                <span className="orders-text">Заказы</span>
-              </Link>
-            )}
-
             {/* Корзина */}
             <Link to="/cart" className="ozon-header__cart">
               <span className="cart-icon">🛒</span>
@@ -101,15 +107,46 @@ export default function Header() {
             {/* Авторизация */}
             {isAuthenticated ? (
               <div className="ozon-header__user">
-                <div className="user-avatar" title={user?.full_name || user?.phone}>
+                <div 
+                  className="user-avatar" 
+                  title={user?.full_name || user?.phone}
+                  onClick={() => setUserMenuVisible(!userMenuVisible)}
+                >
                   👤
                 </div>
-                <Button
-                  text="Выйти"
-                  type="normal"
-                  stylingMode="text"
-                  onClick={logout}
-                />
+                
+                {/* Выпадающее меню */}
+                {userMenuVisible && (
+                  <div className="user-menu">
+                    <div className="user-menu__header">
+                      <div className="user-menu__name">{user?.full_name}</div>
+                      <div className="user-menu__phone">{user?.phone}</div>
+                    </div>
+                    <div className="user-menu__divider"></div>
+                    <div className="user-menu__items">
+                      <div 
+                        className="user-menu__item"
+                        onClick={() => {
+                          setUserMenuVisible(false)
+                          navigate('/orders')
+                        }}
+                      >
+                        <span className="user-menu__icon">📦</span>
+                        <span>Мои заказы</span>
+                      </div>
+                      <div 
+                        className="user-menu__item user-menu__item--danger"
+                        onClick={() => {
+                          setUserMenuVisible(false)
+                          logout()
+                        }}
+                      >
+                        <span className="user-menu__icon">🚪</span>
+                        <span>Выйти</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             ) : (
               <Button
