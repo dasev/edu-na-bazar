@@ -17,7 +17,7 @@ router = APIRouter()
 async def get_categories(db: AsyncSession = Depends(get_db)):
     """Получить все категории"""
     result = await db.execute(
-        select(Category).order_by(Category.sort_order, Category.name)
+        select(Category).order_by(Category.name)
     )
     categories = result.scalars().all()
     return categories

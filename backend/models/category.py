@@ -21,7 +21,6 @@ class Category(Base):
     
     # Иерархия (для подкатегорий)
     parent_id = Column(BigInteger, ForeignKey('market.categories.id'), nullable=True)
-    sort_order = Column(BigInteger, default=0)
     
     # Timestamps
     created_at = Column(DateTime, default=datetime.utcnow)
