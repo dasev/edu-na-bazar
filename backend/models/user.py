@@ -2,12 +2,10 @@
 User models
 """
 from datetime import datetime
-from sqlalchemy import Column, String, DateTime, Boolean, Enum
+from sqlalchemy import Column, String, DateTime, Boolean
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import relationship
 import uuid
 from database import Base
-from models.enums import UserRole
 
 
 class User(Base):
@@ -22,9 +20,6 @@ class User(Base):
     full_name = Column(String(255), nullable=False)
     address = Column(String(500), nullable=True)  # Адрес доставки
     
-    # Роль пользователя
-    role = Column(Enum(UserRole), default=UserRole.CUSTOMER, nullable=False, index=True)
-    
     # Статус
     is_active = Column(Boolean, default=True)
     is_verified = Column(Boolean, default=False)  # Подтвержден ли телефон
@@ -34,11 +29,8 @@ class User(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     last_login = Column(DateTime, nullable=True)
     
-    # Relationships
-    stores = relationship("Store", back_populates="owner")
-    
     def __repr__(self):
-        return f"<User {self.phone} - {self.full_name} ({self.role.value})>"
+        return f"<User {self.phone} - {self.full_name}>"
 
 
 class SMSCode(Base):
