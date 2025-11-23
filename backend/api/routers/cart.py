@@ -1,7 +1,8 @@
 """
 Cart API router
 """
-from fastapi import APIRouter, HTTPException, Depends
+from typing import Optional
+from fastapi import APIRouter, HTTPException, Depends, Header
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from decimal import Decimal
@@ -21,14 +22,21 @@ router = APIRouter()
 
 
 async def get_current_user(
-    authorization: str = Depends(lambda: None),
+    authorization: Optional[str] = Header(None),
     db: AsyncSession = Depends(get_db)
 ) -> User:
     """Получить текущего пользователя из токена"""
-    if not authorization or not authorization.startswith("Bearer "):
-        raise HTTPException(status_code=401, detail="Не авторизован")
+    if not authorization:
+        raise HTTPException(status_code=401, detail="Требуется авторизация")
     
-    token = authorization.replace("Bearer ", "")
+    # Извлекаем токен из заголовка "Bearer <token>"
+    try:
+        scheme, token = authorization.split()
+        if scheme.lower() != 'bearer':
+            raise HTTPException(status_code=401, detail="Неверная схема авторизации")
+    except ValueError:
+        raise HTTPException(status_code=401, detail="Неверный формат токена")
+    
     user_id = JWTService.get_user_id_from_token(token)
     
     if not user_id:
