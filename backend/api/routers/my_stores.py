@@ -7,6 +7,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from database import get_db
 from models.user import User
+from models.store_owner import StoreOwner
+from schemas.store_owner import StoreOwnerCreate, StoreOwnerResponse, StoreOwnerUpdate
 from services.jwt_service import JWTService
 
 router = APIRouter(prefix="/api/my-stores", tags=["my-stores"])
@@ -67,25 +69,19 @@ async def get_current_user(
     return user
 
 
-@router.get("")
+@router.get("", response_model=List[StoreOwnerResponse])
 async def get_my_stores(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
     """
     Получить список магазинов текущего пользователя
-    
-    Пока возвращаем пустой список, так как модель Store еще не создана
     """
-    # TODO: Когда будет создана модель Store, вернуть реальные данные
-    # result = await db.execute(
-    #     select(Store).where(Store.owner_id == current_user.id)
-    # )
-    # stores = result.scalars().all()
-    # return stores
-    
-    # Временно возвращаем пустой список
-    return []
+    result = await db.execute(
+        select(StoreOwner).where(StoreOwner.owner_id == current_user.id)
+    )
+    stores = result.scalars().all()
+    return stores
 
 
 @router.get("/{store_id}")
@@ -104,19 +100,44 @@ async def get_store(
     )
 
 
-@router.post("")
+@router.post("", response_model=StoreOwnerResponse, status_code=status.HTTP_201_CREATED)
 async def create_store(
+    store_data: StoreOwnerCreate,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
     """
     Создать новый магазин
     """
-    # TODO: Реализовать когда будет модель Store
-    raise HTTPException(
-        status_code=status.HTTP_501_NOT_IMPLEMENTED,
-        detail="Функция в разработке"
+    # Проверяем уникальность ИНН
+    existing_store = await db.execute(
+        select(StoreOwner).where(StoreOwner.inn == store_data.inn)
     )
+    if existing_store.scalar_one_or_none():
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Магазин с ИНН {store_data.inn} уже существует"
+        )
+    
+    # Создаем магазин
+    new_store = StoreOwner(
+        owner_id=current_user.id,
+        inn=store_data.inn,
+        kpp=store_data.kpp,
+        ogrn=store_data.ogrn,
+        name=store_data.name,
+        legal_name=store_data.legal_name,
+        address=store_data.address,
+        phone=store_data.phone,
+        email=store_data.email,
+        description=store_data.description
+    )
+    
+    db.add(new_store)
+    await db.commit()
+    await db.refresh(new_store)
+    
+    return new_store
 
 
 @router.put("/{store_id}")
