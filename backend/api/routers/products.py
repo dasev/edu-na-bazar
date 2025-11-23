@@ -21,10 +21,10 @@ router = APIRouter()
 
 @router.get("/", response_model=ProductListResponse)
 async def get_products(
-    category_id: Optional[str] = Query(None),
-    min_price: Optional[Decimal] = Query(None),
-    max_price: Optional[Decimal] = Query(None),
-    min_rating: Optional[Decimal] = Query(None),
+    category_id: Optional[int] = Query(None),
+    min_price: Optional[float] = Query(None),
+    max_price: Optional[float] = Query(None),
+    min_rating: Optional[float] = Query(None),
     in_stock: Optional[bool] = Query(None),
     search: Optional[str] = Query(None),
     sort_by: str = Query("created_at"),

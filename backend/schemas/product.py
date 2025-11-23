@@ -4,8 +4,6 @@ Product schemas
 from pydantic import BaseModel, Field
 from typing import Optional, List
 from datetime import datetime
-from decimal import Decimal
-from uuid import UUID
 
 
 # Request schemas
@@ -14,12 +12,12 @@ class ProductCreate(BaseModel):
     name: str = Field(..., min_length=1, max_length=500)
     slug: str = Field(..., min_length=1, max_length=500)
     description: Optional[str] = None
-    price: Decimal = Field(..., gt=0, decimal_places=2)
-    old_price: Optional[Decimal] = Field(None, gt=0, decimal_places=2)
-    image: Optional[str] = Field(None, max_length=500)
+    price: float = Field(..., gt=0)
+    old_price: Optional[float] = Field(None, gt=0)
+    image: Optional[str] = None
     images: Optional[List[str]] = None
-    category_id: UUID
-    rating: Decimal = Field(default=Decimal("0.0"), ge=0, le=5, decimal_places=2)
+    category_id: int
+    rating: float = Field(default=0.0, ge=0, le=5)
     reviews_count: int = Field(default=0, ge=0)
     in_stock: bool = True
     stock_quantity: int = Field(default=0, ge=0)
@@ -33,12 +31,12 @@ class ProductUpdate(BaseModel):
     name: Optional[str] = Field(None, min_length=1, max_length=500)
     slug: Optional[str] = Field(None, min_length=1, max_length=500)
     description: Optional[str] = None
-    price: Optional[Decimal] = Field(None, gt=0, decimal_places=2)
-    old_price: Optional[Decimal] = Field(None, gt=0, decimal_places=2)
-    image: Optional[str] = Field(None, max_length=500)
+    price: Optional[float] = Field(None, gt=0)
+    old_price: Optional[float] = Field(None, gt=0)
+    image: Optional[str] = None
     images: Optional[List[str]] = None
-    category_id: Optional[UUID] = None
-    rating: Optional[Decimal] = Field(None, ge=0, le=5, decimal_places=2)
+    category_id: Optional[int] = None
+    rating: Optional[float] = Field(None, ge=0, le=5)
     reviews_count: Optional[int] = Field(None, ge=0)
     in_stock: Optional[bool] = None
     stock_quantity: Optional[int] = Field(None, ge=0)
@@ -50,14 +48,14 @@ class ProductUpdate(BaseModel):
 # Response schemas
 class ProductResponse(BaseModel):
     """Схема ответа с товаром"""
-    id: UUID
+    id: int
     name: str
     description: Optional[str]
-    price: Decimal
-    old_price: Optional[Decimal]
+    price: float
+    old_price: Optional[float]
     image: Optional[str]
-    category_id: Optional[UUID]
-    rating: Decimal
+    category_id: Optional[int]
+    rating: float
     reviews_count: int
     in_stock: bool
     unit: str
