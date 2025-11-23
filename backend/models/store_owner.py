@@ -2,20 +2,11 @@
 Store Owner model - магазины пользователей
 """
 from datetime import datetime
-from sqlalchemy import Column, String, DateTime, Text, ForeignKey, Enum as SQLEnum
+from sqlalchemy import Column, String, DateTime, Text, ForeignKey
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 import uuid
-import enum
 from database import Base
-
-
-class StoreStatus(str, enum.Enum):
-    """Статусы магазина"""
-    PENDING = "pending"      # На модерации
-    ACTIVE = "active"        # Активен
-    SUSPENDED = "suspended"  # Приостановлен
-    REJECTED = "rejected"    # Отклонен
 
 
 class StoreOwner(Base):
