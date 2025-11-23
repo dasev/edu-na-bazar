@@ -114,6 +114,13 @@ export const CreateStorePage = () => {
   const handleCreateStore = async () => {
     setError('');
 
+    // Проверка авторизации
+    const token = localStorage.getItem('auth_token');
+    if (!token) {
+      setError('Ошибка авторизации. Пожалуйста, обновите страницу (F5) и попробуйте снова.');
+      return;
+    }
+
     // Валидация
     if (!inn || !name || !legalName || !address) {
       setError('Заполните обязательные поля');
@@ -138,7 +145,11 @@ export const CreateStorePage = () => {
       // Успешно создан - переходим к списку магазинов
       navigate('/my-stores');
     } catch (err: any) {
-      setError(err.response?.data?.detail || 'Ошибка создания магазина');
+      if (err.response?.status === 401) {
+        setError('Ошибка авторизации. Пожалуйста, обновите страницу (F5) и попробуйте снова.');
+      } else {
+        setError(err.response?.data?.detail || 'Ошибка создания магазина');
+      }
     } finally {
       setLoading(false);
     }
