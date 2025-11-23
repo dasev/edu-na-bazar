@@ -46,6 +46,9 @@ async def lifespan(app: FastAPI):
     print(f"📊 Database: {settings.DATABASE_URL}")
     print(f"🔴 Redis: {settings.REDIS_URL}")
     
+    # Импортируем все модели чтобы SQLAlchemy знал о них
+    from models import product_image  # noqa
+    
     yield
     
     # Shutdown

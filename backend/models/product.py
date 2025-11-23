@@ -6,6 +6,11 @@ from sqlalchemy import Column, DateTime, Boolean, BigInteger, ForeignKey, Text, 
 from sqlalchemy.orm import relationship
 from database import Base
 
+# Forward reference для избежания циклического импорта
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from models.product_image import ProductImage
+
 
 class Product(Base):
     """Product model - товары"""
@@ -47,7 +52,7 @@ class Product(Base):
     # Relationships
     category = relationship("Category", back_populates="products")
     store_owner = relationship("StoreOwner", back_populates="products")
-    images = relationship("ProductImage", back_populates="product", cascade="all, delete-orphan")
+    images = relationship("ProductImage", back_populates="product", cascade="all, delete-orphan", lazy="selectin")
     cart_items = relationship("CartItem", back_populates="product")
     order_items = relationship("OrderItem", back_populates="product")
     
