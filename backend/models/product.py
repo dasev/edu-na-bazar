@@ -45,6 +45,11 @@ class Product(Base):
     # Единица измерения
     unit = Column(Text, default="шт")  # шт, кг, л, упак
     
+    # Дополнительные поля для миграции
+    views = Column(BigInteger, default=0)  # Количество просмотров
+    location = Column(Text, nullable=True)  # Адрес/местоположение товара
+    status = Column(Text, default="active")  # active, archived, moderation
+    
     # Timestamps
     created_at = Column(DateTime, default=datetime.utcnow, index=True)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -55,6 +60,8 @@ class Product(Base):
     images = relationship("ProductImage", back_populates="product", cascade="all, delete-orphan", lazy="selectin")
     cart_items = relationship("CartItem", back_populates="product")
     order_items = relationship("OrderItem", back_populates="product")
+    reviews = relationship("Review", back_populates="product", cascade="all, delete-orphan")
+    messages = relationship("Message", back_populates="product")
     
     def __repr__(self):
         return f"<Product {self.name} - {self.price}₽>"

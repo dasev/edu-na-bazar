@@ -36,6 +36,11 @@ class StoreOwner(Base):
     logo = Column(Text, nullable=True)
     banner = Column(Text, nullable=True)
     
+    # Дополнительные поля для миграции
+    category_id = Column(BigInteger, ForeignKey('market.categories.id'), nullable=True, index=True)
+    working_hours = Column(Text, nullable=True)
+    website = Column(Text, nullable=True)
+    
     # Статус
     status = Column(Text, default='pending', nullable=False, index=True)
     

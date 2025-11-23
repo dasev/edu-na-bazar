@@ -3,6 +3,7 @@ User models
 """
 from datetime import datetime
 from sqlalchemy import Column, String, DateTime, Boolean, BigInteger, Text
+from sqlalchemy.orm import relationship
 from database import Base
 
 
@@ -22,11 +23,17 @@ class User(Base):
     # Статус
     is_active = Column(Boolean, default=True)
     is_verified = Column(Boolean, default=False)  # Подтвержден ли телефон
+    status = Column(Text, default='active')  # active, blocked - для миграции
     
     # Timestamps
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    last_login = Column(DateTime, nullable=True)
+    last_login = Column(DateTime, nullable=True, index=True)
+    
+    # Relationships
+    reviews = relationship("Review", back_populates="user")
+    sent_messages = relationship("Message", foreign_keys="Message.from_user_id", back_populates="from_user")
+    received_messages = relationship("Message", foreign_keys="Message.to_user_id", back_populates="to_user")
     
     def __repr__(self):
         return f"<User {self.phone} - {self.full_name}>"
