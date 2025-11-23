@@ -87,3 +87,14 @@
   font-weight: 500;
   color: var(--ozon-text);
 }
+
+.auth-modal__buttons {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.auth-modal__buttons .dx-button {
+  height: 48px;
+}

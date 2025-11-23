@@ -17,6 +17,49 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
+@router.post("/check-phone")
+async def check_phone(
+    request: dict,
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Проверить существует ли пользователь с таким телефоном
+    
+    Returns:
+        - exists: true/false
+        - user: данные пользователя если существует
+    """
+    phone = request.get('phone')
+    
+    if not phone:
+        raise HTTPException(status_code=400, detail="Телефон не указан")
+    
+    # Валидация и форматирование
+    if not SMSService.validate_phone(phone):
+        raise HTTPException(status_code=400, detail="Неверный формат номера телефона")
+    
+    phone = SMSService.format_phone(phone)
+    
+    # Проверяем существует ли пользователь
+    result = await db.execute(select(User).where(User.phone == phone))
+    user = result.scalar_one_or_none()
+    
+    if user:
+        return {
+            "exists": True,
+            "user": {
+                "phone": user.phone,
+                "full_name": user.full_name,
+                "email": user.email
+            }
+        }
+    else:
+        return {
+            "exists": False,
+            "user": None
+        }
+
+
 @router.post("/send-sms", response_model=SMSResponse)
 async def send_sms_code(
     request: SendSMSRequest,

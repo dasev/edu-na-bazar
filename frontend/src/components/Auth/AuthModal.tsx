@@ -14,7 +14,7 @@ interface AuthModalProps {
 }
 
 export default function AuthModal({ visible, onClose, onSuccess }: AuthModalProps) {
-  const [step, setStep] = useState<'phone' | 'code'>('phone')
+  const [step, setStep] = useState<'phone' | 'register' | 'code'>('phone')
   const [phone, setPhone] = useState('')
   const [fullName, setFullName] = useState('')
   const [email, setEmail] = useState('')
@@ -22,10 +22,9 @@ export default function AuthModal({ visible, onClose, onSuccess }: AuthModalProp
   const [code, setCode] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const [isNewUser, setIsNewUser] = useState(false)
   const [smsCode, setSmsCode] = useState('') // Для отображения в dev режиме
 
-  const handleSendSMS = async () => {
+  const handleCheckPhone = async () => {
     setError('')
     
     if (!phone) {
@@ -33,14 +32,41 @@ export default function AuthModal({ visible, onClose, onSuccess }: AuthModalProp
       return
     }
 
-    if (isNewUser && !fullName) {
-      setError('Введите ФИО')
-      return
-    }
+    setLoading(true)
 
-    if (isNewUser && !address) {
-      setError('Введите адрес доставки')
-      return
+    try {
+      // Проверяем существует ли пользователь
+      const checkResponse = await axios.post(`${API_URL}/api/auth/check-phone`, {
+        phone
+      })
+
+      if (checkResponse.data.exists) {
+        // Пользователь существует - отправляем SMS
+        await handleSendSMS()
+      } else {
+        // Новый пользователь - показываем форму регистрации
+        setStep('register')
+      }
+    } catch (err: any) {
+      setError(err.response?.data?.detail || 'Ошибка проверки телефона')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleSendSMS = async () => {
+    setError('')
+
+    if (step === 'register') {
+      // Валидация для регистрации
+      if (!fullName) {
+        setError('Введите ФИО')
+        return
+      }
+      if (!address) {
+        setError('Введите адрес доставки')
+        return
+      }
     }
 
     setLoading(true)
@@ -48,9 +74,9 @@ export default function AuthModal({ visible, onClose, onSuccess }: AuthModalProp
     try {
       const response = await axios.post(`${API_URL}/api/auth/send-sms`, {
         phone,
-        full_name: isNewUser ? fullName : undefined,
-        email: isNewUser ? email : undefined,
-        address: isNewUser ? address : undefined
+        full_name: step === 'register' ? fullName : undefined,
+        email: step === 'register' ? email : undefined,
+        address: step === 'register' ? address : undefined
       })
 
       if (response.data.success) {
@@ -59,15 +85,7 @@ export default function AuthModal({ visible, onClose, onSuccess }: AuthModalProp
         console.log('📱 SMS код:', response.data.code)
       }
     } catch (err: any) {
-      const errorMsg = err.response?.data?.detail || 'Ошибка отправки SMS'
-      
-      // Если новый пользователь - показываем поля регистрации
-      if (errorMsg.includes('ФИО')) {
-        setIsNewUser(true)
-        setError('Вы новый пользователь. Заполните данные для регистрации')
-      } else {
-        setError(errorMsg)
-      }
+      setError(err.response?.data?.detail || 'Ошибка отправки SMS')
     } finally {
       setLoading(false)
     }
@@ -112,7 +130,6 @@ export default function AuthModal({ visible, onClose, onSuccess }: AuthModalProp
     setAddress('')
     setCode('')
     setError('')
-    setIsNewUser(false)
     setSmsCode('')
     onClose()
   }
@@ -123,6 +140,12 @@ export default function AuthModal({ visible, onClose, onSuccess }: AuthModalProp
     handleSendSMS()
   }
 
+  const getTitle = () => {
+    if (step === 'phone') return 'Вход или регистрация'
+    if (step === 'register') return 'Регистрация'
+    return 'Подтверждение телефона'
+  }
+
   return (
     <Popup
       visible={visible}
@@ -130,18 +153,15 @@ export default function AuthModal({ visible, onClose, onSuccess }: AuthModalProp
       dragEnabled={false}
       closeOnOutsideClick={true}
       showTitle={true}
-      title={step === 'phone' ? 'Вход или регистрация' : 'Подтверждение телефона'}
+      title={getTitle()}
       width={440}
       height="auto"
     >
       <div className="auth-modal">
-        {step === 'phone' ? (
+        {step === 'phone' && (
           <>
             <div className="auth-modal__description">
-              {isNewUser 
-                ? 'Заполните данные для регистрации'
-                : 'Введите номер телефона, мы отправим SMS с кодом подтверждения'
-              }
+              Введите номер телефона, мы отправим SMS с кодом подтверждения
             </div>
 
             <div className="auth-modal__form">
@@ -154,52 +174,82 @@ export default function AuthModal({ visible, onClose, onSuccess }: AuthModalProp
                 disabled={loading}
               />
 
-              {isNewUser && (
-                <>
-                  <TextBox
-                    label="ФИО *"
-                    placeholder="Иванов Иван Иванович"
-                    value={fullName}
-                    onValueChanged={(e) => setFullName(e.value)}
-                    disabled={loading}
-                  />
-
-                  <TextBox
-                    label="Email"
-                    placeholder="ivan@example.com"
-                    value={email}
-                    onValueChanged={(e) => setEmail(e.value)}
-                    mode="email"
-                    disabled={loading}
-                  />
-
-                  <TextBox
-                    label="Адрес доставки *"
-                    placeholder="г. Москва, ул. Ленина, д. 1, кв. 1"
-                    value={address}
-                    onValueChanged={(e) => setAddress(e.value)}
-                    disabled={loading}
-                  />
-                </>
-              )}
-
               {error && <div className="auth-modal__error">{error}</div>}
 
               <Button
-                text={isNewUser ? 'Зарегистрироваться' : 'Получить код'}
+                text="Продолжить"
                 type="default"
+                stylingMode="contained"
                 width="100%"
-                height={48}
-                onClick={handleSendSMS}
-                disabled={loading}
+                onClick={handleCheckPhone}
+                disabled={loading || !phone}
               />
             </div>
+          </>
+        )}
 
-            <div className="auth-modal__footer">
-              Нажимая кнопку, вы соглашаетесь с условиями использования
+        {step === 'register' && (
+          <>
+            <div className="auth-modal__description">
+              Вы новый пользователь. Заполните данные для регистрации
+            </div>
+
+            <div className="auth-modal__form">
+              <TextBox
+                label="Телефон"
+                value={phone}
+                disabled={true}
+                mode="tel"
+              />
+
+              <TextBox
+                label="ФИО *"
+                placeholder="Иванов Иван Иванович"
+                value={fullName}
+                onValueChanged={(e) => setFullName(e.value)}
+                disabled={loading}
+              />
+
+              <TextBox
+                label="Email"
+                placeholder="ivan@example.com"
+                value={email}
+                onValueChanged={(e) => setEmail(e.value)}
+                mode="email"
+                disabled={loading}
+              />
+
+              <TextBox
+                label="Адрес доставки *"
+                placeholder="г. Москва, ул. Ленина, д. 1, кв. 1"
+                value={address}
+                onValueChanged={(e) => setAddress(e.value)}
+                disabled={loading}
+              />
+
+              {error && <div className="auth-modal__error">{error}</div>}
+
+              <div className="auth-modal__buttons">
+                <Button
+                  text="Назад"
+                  type="normal"
+                  stylingMode="outlined"
+                  onClick={() => setStep('phone')}
+                  disabled={loading}
+                />
+                <Button
+                  text="Зарегистрироваться"
+                  type="default"
+                  stylingMode="contained"
+                  onClick={handleSendSMS}
+                  disabled={loading || !fullName || !address}
+                />
+              </div>
             </div>
           </>
-        ) : (
+        )}
+
+        {step === 'code' && (
           <>
             <div className="auth-modal__description">
               Мы отправили код на номер<br />
