@@ -1,7 +1,7 @@
 /**
  * Страница заказов пользователя
  */
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { SelectBox } from 'devextreme-react/select-box';
@@ -46,6 +46,13 @@ export const OrdersPage = () => {
   const { isAuthenticated } = useAuthStore();
   const [statusFilter, setStatusFilter] = useState('all');
 
+  // Автоматический редирект на главную если не авторизован
+  useEffect(() => {
+    if (!isAuthenticated) {
+      navigate('/');
+    }
+  }, [isAuthenticated, navigate]);
+
   const { data: ordersData, isLoading, error } = useQuery({
     queryKey: ['orders'],
     queryFn: () => ordersApi.getOrders(),
@@ -53,21 +60,7 @@ export const OrdersPage = () => {
   });
 
   if (!isAuthenticated) {
-    return (
-      <div className="orders-page">
-        <div className="orders-empty">
-          <div className="empty-icon">🔒</div>
-          <h2>Требуется авторизация</h2>
-          <p>Войдите в систему, чтобы просмотреть свои заказы</p>
-          <Button
-            text="Войти"
-            type="default"
-            stylingMode="contained"
-            onClick={() => navigate('/')}
-          />
-        </div>
-      </div>
-    );
+    return null; // Показываем пустую страницу пока идет редирект
   }
 
   const orders = ordersData?.data || [];
