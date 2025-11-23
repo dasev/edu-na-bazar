@@ -98,3 +98,19 @@ class StoreOwnerResponse(BaseModel):
     
     class Config:
         from_attributes = True
+        
+    @classmethod
+    def model_validate(cls, obj):
+        """Преобразуем UUID в строки"""
+        if hasattr(obj, '__dict__'):
+            data = {}
+            for key, value in obj.__dict__.items():
+                if key.startswith('_'):
+                    continue
+                # Преобразуем UUID в строку
+                if hasattr(value, 'hex'):  # UUID объект
+                    data[key] = str(value)
+                else:
+                    data[key] = value
+            return super().model_validate(data)
+        return super().model_validate(obj)
