@@ -10,9 +10,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 import traceback
 import json
 
-from api.routers import products, categories, stores, orders, auth, cart
+from api.routers import products, categories, stores, orders, auth, cart, images
 from database import engine, Base, get_db
 from config import settings
+from fastapi.staticfiles import StaticFiles
 
 
 # Настройка кодировки для JSON
@@ -159,6 +160,10 @@ app.include_router(categories.router, prefix="/api/categories", tags=["categorie
 app.include_router(stores.router, prefix="/api/stores", tags=["stores"])
 app.include_router(orders.router, prefix="/api/orders", tags=["orders"])
 app.include_router(cart.router, prefix="/api/cart", tags=["cart"])
+app.include_router(images.router, prefix="/api/images", tags=["images"])
+
+# Статические файлы для изображений
+app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
 
 @app.get("/")
