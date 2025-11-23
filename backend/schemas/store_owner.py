@@ -1,10 +1,9 @@
 """
 Store Owner schemas
 """
-from pydantic import BaseModel, Field, field_validator, field_serializer
+from pydantic import BaseModel, Field, field_validator
 from typing import Optional
 from datetime import datetime
-from uuid import UUID
 import re
 
 
@@ -80,8 +79,8 @@ class StoreOwnerUpdate(BaseModel):
 
 class StoreOwnerResponse(BaseModel):
     """Схема ответа с данными магазина"""
-    id: str
-    owner_id: str
+    id: int
+    owner_id: int
     inn: str
     kpp: Optional[str]
     ogrn: Optional[str]
@@ -99,13 +98,3 @@ class StoreOwnerResponse(BaseModel):
     
     class Config:
         from_attributes = True
-        json_encoders = {
-            UUID: str
-        }
-    
-    @field_serializer('id', 'owner_id')
-    def serialize_uuid(self, value):
-        """Преобразуем UUID в строку"""
-        if isinstance(value, UUID):
-            return str(value)
-        return value

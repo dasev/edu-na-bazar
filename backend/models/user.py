@@ -2,9 +2,7 @@
 User models
 """
 from datetime import datetime
-from sqlalchemy import Column, String, DateTime, Boolean
-from sqlalchemy.dialects.postgresql import UUID
-import uuid
+from sqlalchemy import Column, String, DateTime, Boolean, BigInteger, Text
 from database import Base
 
 
@@ -12,13 +10,13 @@ class User(Base):
     """User model - без паролей, только SMS аутентификация"""
     __tablename__ = "users"
     
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id = Column(BigInteger, primary_key=True, autoincrement=True)
     
     # Основная информация
-    phone = Column(String(20), unique=True, nullable=False, index=True)
-    email = Column(String(255), unique=True, nullable=True, index=True)
-    full_name = Column(String(255), nullable=False)
-    address = Column(String(500), nullable=True)  # Адрес доставки
+    phone = Column(Text, unique=True, nullable=False, index=True)
+    email = Column(Text, unique=True, nullable=True, index=True)
+    full_name = Column(Text, nullable=False)
+    address = Column(Text, nullable=True)  # Адрес доставки
     
     # Статус
     is_active = Column(Boolean, default=True)

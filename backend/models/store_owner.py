@@ -2,10 +2,8 @@
 Store Owner model - магазины пользователей
 """
 from datetime import datetime
-from sqlalchemy import Column, String, DateTime, Text, ForeignKey
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy import Column, DateTime, Text, ForeignKey, BigInteger
 from sqlalchemy.orm import relationship
-import uuid
 from database import Base
 
 
@@ -13,10 +11,10 @@ class StoreOwner(Base):
     """Store Owner model - магазины пользователей"""
     __tablename__ = "store_owners"
     
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id = Column(BigInteger, primary_key=True, autoincrement=True)
     
     # Владелец
-    owner_id = Column(UUID(as_uuid=True), ForeignKey('users.id'), nullable=False, index=True)
+    owner_id = Column(BigInteger, ForeignKey('users.id'), nullable=False, index=True)
     
     # Реквизиты
     inn = Column(Text, nullable=False, unique=True, index=True)
