@@ -47,7 +47,7 @@ class StoreOwner(Base):
     banner = Column(String(500), nullable=True)  # URL баннера
     
     # Статус
-    status = Column(SQLEnum(StoreStatus), default=StoreStatus.PENDING, nullable=False, index=True)
+    status = Column(SQLEnum(StoreStatus, name='store_status'), default=StoreStatus.PENDING, nullable=False, index=True)
     
     # Timestamps
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
