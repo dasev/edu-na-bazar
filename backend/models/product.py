@@ -2,43 +2,41 @@
 Product model
 """
 from datetime import datetime
-from sqlalchemy import Column, String, DateTime, Boolean, Integer, ForeignKey, Text, ARRAY
-from sqlalchemy.dialects.postgresql import UUID, NUMERIC
+from sqlalchemy import Column, DateTime, Boolean, BigInteger, ForeignKey, Text, ARRAY, Double
 from sqlalchemy.orm import relationship
-from decimal import Decimal
-import uuid
 from database import Base
 
 
 class Product(Base):
     """Product model - товары"""
     __tablename__ = "products"
+    __table_args__ = {'schema': 'market'}
     
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id = Column(BigInteger, primary_key=True, autoincrement=True)
     
     # Основная информация
-    name = Column(String(500), nullable=False, index=True)
+    name = Column(Text, nullable=False, index=True)
     description = Column(Text, nullable=True)
     
     # Цены
-    price = Column(NUMERIC(10, 2), nullable=False)
-    old_price = Column(NUMERIC(10, 2), nullable=True)  # Для отображения скидки
+    price = Column(Double, nullable=False)
+    old_price = Column(Double, nullable=True)  # Для отображения скидки
     
     # Изображения
-    image = Column(String(500), nullable=True)  # Основное изображение
+    image = Column(Text, nullable=True)  # Основное изображение
     
     # Категория
-    category_id = Column(UUID(as_uuid=True), ForeignKey('categories.id'), nullable=True, index=True)
+    category_id = Column(BigInteger, ForeignKey('market.categories.id'), nullable=True, index=True)
     
     # Рейтинг и отзывы
-    rating = Column(NUMERIC(3, 2), default=0.0)  # От 0.00 до 5.00
-    reviews_count = Column(Integer, default=0)
+    rating = Column(Double, default=0.0)  # От 0.00 до 5.00
+    reviews_count = Column(BigInteger, default=0)
     
     # Наличие
     in_stock = Column(Boolean, default=True)
     
     # Единица измерения
-    unit = Column(String(50), default="шт")  # шт, кг, л, упак
+    unit = Column(Text, default="шт")  # шт, кг, л, упак
     
     # Timestamps
     created_at = Column(DateTime, default=datetime.utcnow, index=True)
