@@ -33,7 +33,7 @@ async def get_current_user(
     except ValueError:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Неверный формат токена")
     
-    payload = JWTService.decode_token(token)
+    payload = JWTService.verify_token(token)
     if not payload:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
