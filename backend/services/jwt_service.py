@@ -59,7 +59,7 @@ class JWTService:
             return payload
         except jwt.ExpiredSignatureError:
             return None
-        except jwt.JWTError:
+        except Exception:
             return None
     
     @staticmethod
