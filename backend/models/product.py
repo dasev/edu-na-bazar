@@ -20,7 +20,6 @@ class Product(Base):
     
     # Цены
     price = Column(Double, nullable=False)
-    old_price = Column(Double, nullable=True)  # Для отображения скидки
     
     # Изображения
     image = Column(Text, nullable=True)  # Основное изображение
