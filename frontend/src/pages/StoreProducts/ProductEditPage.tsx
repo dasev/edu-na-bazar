@@ -98,8 +98,9 @@ export default function ProductEditPage() {
       const response = await apiClient.post(`/api/my-stores/${storeId}/products`, data)
       return response.data
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['store-products', storeId] })
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['store-products', storeId] })
+      await queryClient.refetchQueries({ queryKey: ['store-products', storeId] })
       toast.success('Товар создан')
       navigate(`/my-stores/${storeId}/products`)
     },
@@ -114,9 +115,10 @@ export default function ProductEditPage() {
       const response = await apiClient.put(`/api/my-stores/${storeId}/products/${productId}`, data)
       return response.data
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['store-products', storeId] })
-      queryClient.invalidateQueries({ queryKey: ['product', productId] })
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['store-products', storeId] })
+      await queryClient.invalidateQueries({ queryKey: ['product', productId] })
+      await queryClient.refetchQueries({ queryKey: ['store-products', storeId] })
       toast.success('Товар обновлен')
       navigate(`/my-stores/${storeId}/products`)
     },
