@@ -9,6 +9,7 @@ from database import Base
 class User(Base):
     """User model - без паролей, только SMS аутентификация"""
     __tablename__ = "users"
+    __table_args__ = {'schema': 'config'}
     
     id = Column(BigInteger, primary_key=True, autoincrement=True)
     
@@ -34,12 +35,13 @@ class User(Base):
 class SMSCode(Base):
     """SMS verification codes"""
     __tablename__ = "sms_codes"
+    __table_args__ = {'schema': 'config'}
     
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id = Column(BigInteger, primary_key=True, autoincrement=True)
     
     # Телефон и код
-    phone = Column(String(20), nullable=False, index=True)
-    code = Column(String(6), nullable=False)  # 6-значный код
+    phone = Column(Text, nullable=False, index=True)
+    code = Column(Text, nullable=False)  # 6-значный код
     
     # Статус
     is_used = Column(Boolean, default=False)

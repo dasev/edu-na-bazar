@@ -10,11 +10,12 @@ from database import Base
 class StoreOwner(Base):
     """Store Owner model - магазины пользователей"""
     __tablename__ = "store_owners"
+    __table_args__ = {'schema': 'market'}
     
     id = Column(BigInteger, primary_key=True, autoincrement=True)
     
     # Владелец
-    owner_id = Column(BigInteger, ForeignKey('users.id'), nullable=False, index=True)
+    owner_id = Column(BigInteger, ForeignKey('config.users.id'), nullable=False, index=True)
     
     # Реквизиты
     inn = Column(Text, nullable=False, unique=True, index=True)
