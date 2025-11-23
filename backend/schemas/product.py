@@ -10,33 +10,27 @@ from datetime import datetime
 class ProductCreate(BaseModel):
     """Схема для создания товара"""
     name: str = Field(..., min_length=1, max_length=500)
-    slug: str = Field(..., min_length=1, max_length=500)
     description: Optional[str] = None
     price: float = Field(..., gt=0)
-    old_price: Optional[float] = Field(None, gt=0)
     image: Optional[str] = None
-    category_id: int
+    category_id: Optional[int] = None
     rating: float = Field(default=0.0, ge=0, le=5)
     reviews_count: int = Field(default=0, ge=0)
     in_stock: bool = True
-    stock_quantity: int = Field(default=0, ge=0)
-    unit: Optional[str] = Field(None, max_length=50)
-    meta_title: Optional[str] = Field(None, max_length=255)
-    meta_description: Optional[str] = Field(None, max_length=500)
+    unit: str = Field(default="шт", max_length=50)
 
 
 class ProductUpdate(BaseModel):
     """Схема для обновления товара"""
     name: Optional[str] = Field(None, min_length=1, max_length=500)
-    slug: Optional[str] = Field(None, min_length=1, max_length=500)
     description: Optional[str] = None
     price: Optional[float] = Field(None, gt=0)
-    old_price: Optional[float] = Field(None, gt=0)
     image: Optional[str] = None
     category_id: Optional[int] = None
     rating: Optional[float] = Field(None, ge=0, le=5)
     reviews_count: Optional[int] = Field(None, ge=0)
     in_stock: Optional[bool] = None
+    unit: Optional[str] = Field(None, max_length=50)
     stock_quantity: Optional[int] = Field(None, ge=0)
     unit: Optional[str] = Field(None, max_length=50)
     meta_title: Optional[str] = Field(None, max_length=255)
