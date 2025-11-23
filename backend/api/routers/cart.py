@@ -2,7 +2,6 @@
 Cart API router
 """
 from typing import Optional
-from uuid import UUID
 from fastapi import APIRouter, HTTPException, Depends, Header
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
@@ -43,9 +42,9 @@ async def get_current_user(
     if not user_id_str:
         raise HTTPException(status_code=401, detail="Неверный токен")
     
-    # Конвертируем строку в UUID
+    # Конвертируем строку в int
     try:
-        user_id = UUID(user_id_str)
+        user_id = int(user_id_str)
     except (ValueError, AttributeError):
         raise HTTPException(status_code=401, detail="Неверный формат ID пользователя")
     

@@ -2,7 +2,6 @@
 My Stores Router - управление магазинами пользователя
 """
 from typing import List, Optional
-from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, status, Header
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
@@ -55,9 +54,9 @@ async def get_current_user(
             detail="Невалидный токен"
         )
     
-    # Конвертируем строку в UUID
+    # Конвертируем строку в int
     try:
-        user_id = UUID(user_id_str)
+        user_id = int(user_id_str)
     except (ValueError, AttributeError):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
