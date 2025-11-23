@@ -82,20 +82,10 @@
   padding: 0 !important;
 }
 
-.add-image-thumb {
-  width: 80px;
-  height: 80px;
-  border: 2px dashed #ddd;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 5px;
-}
-
-.add-image-thumb .dx-textbox {
-  width: 100%;
-  font-size: 10px;
+.add-image-field {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #e0e0e0;
 }
 
 .main-image {

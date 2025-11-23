@@ -174,18 +174,6 @@ export default function ProductEditPage() {
                   />
                 </div>
               ))}
-              <div className="add-image-thumb">
-                <TextBox
-                  placeholder="URL изображения"
-                  onValueChanged={(e) => {
-                    if (e.value && e.event?.type === 'change') {
-                      addImage(e.value)
-                      e.component.option('value', '')
-                    }
-                  }}
-                  mode="text"
-                />
-              </div>
             </div>
             <div className="main-image">
               {images.length > 0 ? (
@@ -204,6 +192,19 @@ export default function ProductEditPage() {
             <div className="preview-meta">
               <span>⭐ {formData.rating || 0}</span>
               <span>{formData.in_stock ? '✅ В наличии' : '❌ Нет в наличии'}</span>
+            </div>
+            <div className="add-image-field">
+              <TextBox
+                placeholder="Вставьте URL изображения и нажмите Enter"
+                onValueChanged={(e) => {
+                  if (e.value && e.event?.type === 'change') {
+                    addImage(e.value)
+                    e.component.option('value', '')
+                  }
+                }}
+                mode="text"
+                width="100%"
+              />
             </div>
           </div>
         </div>
