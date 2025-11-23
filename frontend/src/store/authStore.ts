@@ -33,6 +33,10 @@ export const useAuthStore = create<AuthState>()(
       isAuthenticated: false,
 
       login: (token: string, user: User) => {
+        // Сохраняем токен в localStorage для API client
+        localStorage.setItem('auth_token', token)
+        localStorage.setItem('user', JSON.stringify(user))
+        
         set({
           token,
           user,
