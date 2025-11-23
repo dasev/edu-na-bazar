@@ -10,6 +10,7 @@ import CheckoutPage from './pages/Checkout/CheckoutPage'
 import { OrdersPage } from './pages/Orders/OrdersPage'
 import { MyStoresPage } from './pages/MyStores/MyStoresPage'
 import { CreateStorePage } from './pages/MyStores/CreateStorePage'
+import StoreProductsPage from './pages/StoreProducts/StoreProductsPage'
 import { NotFoundPage } from './pages/NotFound/NotFoundPage'
 import { AboutPage } from './pages/About/AboutPage'
 import './App.css'
@@ -33,6 +34,7 @@ function App() {
               <Route path="/orders" element={<OrdersPage />} />
               <Route path="/my-stores" element={<MyStoresPage />} />
               <Route path="/my-stores/create" element={<CreateStorePage />} />
+              <Route path="/my-stores/:storeId/products" element={<StoreProductsPage />} />
               <Route path="/about" element={<AboutPage />} />
               <Route path="*" element={<NotFoundPage />} />
             </Routes>
