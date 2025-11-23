@@ -15,7 +15,6 @@ class ProductCreate(BaseModel):
     price: float = Field(..., gt=0)
     old_price: Optional[float] = Field(None, gt=0)
     image: Optional[str] = None
-    images: Optional[List[str]] = None
     category_id: int
     rating: float = Field(default=0.0, ge=0, le=5)
     reviews_count: int = Field(default=0, ge=0)
@@ -34,7 +33,6 @@ class ProductUpdate(BaseModel):
     price: Optional[float] = Field(None, gt=0)
     old_price: Optional[float] = Field(None, gt=0)
     image: Optional[str] = None
-    images: Optional[List[str]] = None
     category_id: Optional[int] = None
     rating: Optional[float] = Field(None, ge=0, le=5)
     reviews_count: Optional[int] = Field(None, ge=0)
@@ -52,7 +50,6 @@ class ProductResponse(BaseModel):
     name: str
     description: Optional[str]
     price: float
-    old_price: Optional[float]
     image: Optional[str]
     category_id: Optional[int]
     rating: float
@@ -61,7 +58,6 @@ class ProductResponse(BaseModel):
     unit: str
     created_at: datetime
     updated_at: datetime
-    discount_percent: int = 0
     
     class Config:
         from_attributes = True
@@ -79,10 +75,9 @@ class ProductFilters(BaseModel):
     category_id: Optional[int] = None
     min_price: Optional[float] = None
     max_price: Optional[float] = None
-    min_rating: Optional[float] = None
     in_stock: Optional[bool] = None
     search: Optional[str] = None
-    sort_by: Optional[str] = Field(default="created_at", pattern="^(price|rating|created_at|name)$")
+    sort_by: Optional[str] = Field(default="created_at", pattern="^(price|created_at|name)$")
     sort_order: Optional[str] = Field(default="desc", pattern="^(asc|desc)$")
     skip: int = Field(default=0, ge=0)
     limit: int = Field(default=20, ge=1, le=100)

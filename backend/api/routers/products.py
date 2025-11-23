@@ -24,7 +24,6 @@ async def get_products(
     category_id: Optional[int] = Query(None),
     min_price: Optional[float] = Query(None),
     max_price: Optional[float] = Query(None),
-    min_rating: Optional[float] = Query(None),
     in_stock: Optional[bool] = Query(None),
     search: Optional[str] = Query(None),
     sort_by: str = Query("created_at"),

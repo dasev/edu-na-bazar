@@ -28,7 +28,7 @@ class Product(Base):
     category_id = Column(BigInteger, ForeignKey('market.categories.id'), nullable=True, index=True)
     
     # Рейтинг и отзывы
-    rating = Column(Double, default=0.0)  # От 0.00 до 5.00
+    rating = Column(Double, default=0.0)
     reviews_count = Column(BigInteger, default=0)
     
     # Наличие
