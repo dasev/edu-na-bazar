@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Исправление авторизации</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background: linear-gradient(180deg, #f8f9fa 0%, #ffffff 100%);
+        }
+        .card {
+            background: white;
+            border-radius: 16px;
+            padding: 32px;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.08);
+        }
+        h1 {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin: 0 0 24px 0;
+        }
+        .status {
+            padding: 12px;
+            border-radius: 8px;
+            margin: 16px 0;
+            font-family: monospace;
+            font-size: 14px;
+        }
+        .error {
+            background: #fee;
+            border: 1px solid #fcc;
+            color: #c00;
+        }
+        .success {
+            background: #efe;
+            border: 1px solid #cfc;
+            color: #060;
+        }
+        .info {
+            background: #eef;
+            border: 1px solid #ccf;
+            color: #006;
+        }
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin: 8px 8px 8px 0;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+            transition: all 0.3s;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+        }
+        button.secondary {
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+            box-shadow: none;
+        }
+        pre {
+            background: #f5f5f5;
+            padding: 12px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>🔧 Исправление авторизации</h1>
+        
+        <div id="status"></div>
+        
+        <div style="margin-top: 24px;">
+            <button onclick="checkAuth()">🔍 Проверить</button>
+            <button onclick="fixAuth()">✅ Исправить</button>
+            <button onclick="clearAll()" class="secondary">🗑️ Очистить все</button>
+            <button onclick="goHome()" class="secondary">🏠 На главную</button>
+        </div>
+        
+        <div id="details" style="margin-top: 24px;"></div>
+    </div>
+
+    <script>
+        function checkAuth() {
+            const status = document.getElementById('status');
+            const details = document.getElementById('details');
+            
+            // Проверяем что есть в localStorage
+            const authToken = localStorage.getItem('auth_token');
+            const authStorage = localStorage.getItem('auth-storage');
+            const user = localStorage.getItem('user');
+            
+            let html = '';
+            let hasIssues = false;
+            
+            // Парсим auth-storage (zustand)
+            let zustandData = null;
+            if (authStorage) {
+                try {
+                    zustandData = JSON.parse(authStorage);
+                } catch (e) {
+                    html += '<div class="status error">❌ Ошибка парсинга auth-storage</div>';
+                    hasIssues = true;
+                }
+            }
+            
+            // Проверяем auth_token
+            if (!authToken) {
+                html += '<div class="status error">❌ Токен отсутствует в localStorage["auth_token"]</div>';
+                hasIssues = true;
+            } else {
+                html += '<div class="status success">✅ Токен найден в localStorage["auth_token"]</div>';
+            }
+            
+            // Проверяем zustand store
+            if (zustandData && zustandData.state) {
+                if (zustandData.state.token) {
+                    html += '<div class="status success">✅ Токен найден в zustand store</div>';
+                    
+                    // Проверяем совпадают ли токены
+                    if (authToken && authToken !== zustandData.state.token) {
+                        html += '<div class="status error">❌ Токены не совпадают!</div>';
+                        hasIssues = true;
+                    }
+                } else {
+                    html += '<div class="status error">❌ Токен отсутствует в zustand store</div>';
+                    hasIssues = true;
+                }
+                
+                if (zustandData.state.isAuthenticated) {
+                    html += '<div class="status success">✅ Пользователь авторизован (zustand)</div>';
+                } else {
+                    html += '<div class="status error">❌ Пользователь НЕ авторизован (zustand)</div>';
+                    hasIssues = true;
+                }
+            } else {
+                html += '<div class="status error">❌ Zustand store пуст</div>';
+                hasIssues = true;
+            }
+            
+            status.innerHTML = html;
+            
+            // Показываем детали
+            let detailsHtml = '<h3>Детали:</h3>';
+            detailsHtml += '<pre>';
+            detailsHtml += 'auth_token: ' + (authToken ? authToken.substring(0, 50) + '...' : 'null') + '\n';
+            detailsHtml += 'user: ' + (user ? 'есть' : 'null') + '\n';
+            detailsHtml += 'auth-storage: ' + (authStorage ? 'есть' : 'null') + '\n';
+            if (zustandData) {
+                detailsHtml += '\nZustand state:\n' + JSON.stringify(zustandData.state, null, 2);
+            }
+            detailsHtml += '</pre>';
+            
+            if (hasIssues) {
+                detailsHtml += '<div class="status error">⚠️ Обнаружены проблемы! Нажмите "Исправить" или "Очистить все"</div>';
+            } else {
+                detailsHtml += '<div class="status success">✅ Все в порядке! Если проблемы остались, попробуйте перелогиниться.</div>';
+            }
+            
+            details.innerHTML = detailsHtml;
+        }
+        
+        function fixAuth() {
+            const authStorage = localStorage.getItem('auth-storage');
+            
+            if (!authStorage) {
+                alert('❌ Нет данных для исправления. Нажмите "Очистить все" и перелогиньтесь.');
+                return;
+            }
+            
+            try {
+                const zustandData = JSON.parse(authStorage);
+                
+                if (zustandData.state && zustandData.state.token) {
+                    // Копируем токен из zustand в auth_token
+                    localStorage.setItem('auth_token', zustandData.state.token);
+                    
+                    if (zustandData.state.user) {
+                        localStorage.setItem('user', JSON.stringify(zustandData.state.user));
+                    }
+                    
+                    alert('✅ Исправлено! Токен скопирован в localStorage["auth_token"]. Обновите страницу.');
+                    checkAuth();
+                } else {
+                    alert('❌ В zustand store нет токена. Нажмите "Очистить все" и перелогиньтесь.');
+                }
+            } catch (e) {
+                alert('❌ Ошибка: ' + e.message);
+            }
+        }
+        
+        function clearAll() {
+            if (confirm('Очистить все данные авторизации? Потребуется войти заново.')) {
+                localStorage.clear();
+                alert('✅ Все данные очищены! Сейчас перейдем на главную страницу.');
+                window.location.href = '/';
+            }
+        }
+        
+        function goHome() {
+            window.location.href = '/';
+        }
+        
+        // Автоматическая проверка при загрузке
+        window.onload = checkAuth;
+    </script>
+</body>
+</html>
