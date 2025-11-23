@@ -35,7 +35,30 @@ function App() {
       <BrowserRouter>
         <div className="app">
           <Header />
-          <Toaster position="top-right" />
+          <Toaster 
+            position="bottom-right"
+            toastOptions={{
+              duration: 3000,
+              style: {
+                background: '#363636',
+                color: '#fff',
+              },
+              success: {
+                duration: 3000,
+                iconTheme: {
+                  primary: '#4CAF50',
+                  secondary: '#fff',
+                },
+              },
+              error: {
+                duration: 4000,
+                iconTheme: {
+                  primary: '#f44336',
+                  secondary: '#fff',
+                },
+              },
+            }}
+          />
           <main className="main-content">
             <Routes>
               <Route path="/" element={<HomePage />} />
