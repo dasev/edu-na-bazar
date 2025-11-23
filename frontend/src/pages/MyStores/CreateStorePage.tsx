@@ -6,12 +6,13 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from 'devextreme-react/button';
 import { TextBox } from 'devextreme-react/text-box';
 import { TextArea } from 'devextreme-react/text-area';
+import { Autocomplete } from 'devextreme-react/autocomplete';
 import { useAuthStore } from '../../store/authStore';
 import { myStoresApi } from '../../api/services/myStores';
 import './CreateStorePage.css';
 
 const DADATA_API_KEY = 'e76739998f03541266e5b2f288d0d1c8b5d2f876';
-const DADATA_API_URL = 'https://suggestions.dadata.ru/suggestions/api/4_1/rs/findById/party';
+const DADATA_SUGGEST_URL = 'https://suggestions.dadata.ru/suggestions/api/4_1/rs/suggest/party';
 
 interface DaDataResponse {
   suggestions: Array<{
@@ -59,28 +60,25 @@ export const CreateStorePage = () => {
 
   // Состояние
   const [loading, setLoading] = useState(false);
-  const [searching, setSearching] = useState(false);
   const [error, setError] = useState('');
-  const [success, setSuccess] = useState(false);
+  const [suggestions, setSuggestions] = useState<any[]>([]);
+  const [searchValue, setSearchValue] = useState('');
 
-  // Поиск по ИНН через DaData
-  const handleSearchByInn = async () => {
-    if (!inn || inn.length < 10) {
-      setError('Введите корректный ИНН (10 или 12 цифр)');
+  // Поиск организаций через DaData (автокомплит)
+  const handleSearchOrganizations = async (query: string) => {
+    if (!query || query.length < 3) {
+      setSuggestions([]);
       return;
     }
 
-    setSearching(true);
-    setError('');
-
     try {
-      const response = await fetch(DADATA_API_URL, {
+      const response = await fetch(DADATA_SUGGEST_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Token ${DADATA_API_KEY}`,
         },
-        body: JSON.stringify({ query: inn }),
+        body: JSON.stringify({ query, count: 10 }),
       });
 
       if (!response.ok) {
@@ -88,27 +86,28 @@ export const CreateStorePage = () => {
       }
 
       const data: DaDataResponse = await response.json();
-
-      if (data.suggestions && data.suggestions.length > 0) {
-        const org = data.suggestions[0].data;
-
-        // Автозаполнение полей
-        setLegalName(org.name.full_with_opf);
-        setName(org.name.short_with_opf);
-        setAddress(org.address.value);
-        setKpp(org.kpp || '');
-        setOgrn(org.ogrn || '');
-
-        setSuccess(true);
-        setTimeout(() => setSuccess(false), 3000);
-      } else {
-        setError('Организация с таким ИНН не найдена');
-      }
+      setSuggestions(data.suggestions || []);
     } catch (err: any) {
-      setError(err.message || 'Ошибка поиска организации');
-    } finally {
-      setSearching(false);
+      console.error('Ошибка поиска:', err);
+      setSuggestions([]);
     }
+  };
+
+  // Выбор организации из списка
+  const handleSelectOrganization = (suggestion: any) => {
+    const org = suggestion.data;
+
+    // Автозаполнение всех полей
+    setInn(org.inn);
+    setLegalName(org.name.full_with_opf);
+    setName(org.name.short_with_opf);
+    setAddress(org.address.value);
+    setKpp(org.kpp || '');
+    setOgrn(org.ogrn || '');
+    setSearchValue(suggestion.value);
+
+    // Очищаем подсказки
+    setSuggestions([]);
   };
 
   // Создание магазина
@@ -163,42 +162,39 @@ export const CreateStorePage = () => {
         </div>
 
         <div className="create-store-form">
-          {/* Поиск по ИНН */}
+          {/* Поиск организации */}
           <div className="form-section">
-            <h2>🔍 Поиск организации по ИНН</h2>
+            <h2>🔍 Поиск организации</h2>
             <p className="form-section-description">
-              Введите ИНН организации, и мы автоматически заполним данные
+              Начните вводить название, ИНН или адрес организации
             </p>
 
-            <div className="inn-search">
-              <div className="form-group">
-                <label className="form-label">ИНН *</label>
-                <TextBox
-                  value={inn}
-                  onValueChanged={(e) => setInn(e.value)}
-                  placeholder="1234567890"
-                  maxLength={12}
-                  disabled={searching || loading}
-                  stylingMode="outlined"
-                  mode="tel"
-                />
-              </div>
-
-              <Button
-                text={searching ? 'Поиск...' : 'Найти по ИНН'}
-                type="default"
-                stylingMode="contained"
-                onClick={handleSearchByInn}
-                disabled={searching || loading || !inn}
-                icon={searching ? 'refresh' : 'search'}
+            <div className="form-group">
+              <label className="form-label">Поиск организации *</label>
+              <Autocomplete
+                value={searchValue}
+                onValueChanged={(e) => {
+                  setSearchValue(e.value);
+                  handleSearchOrganizations(e.value);
+                }}
+                dataSource={suggestions}
+                valueExpr="value"
+                displayExpr={(item: any) => {
+                  if (!item) return '';
+                  return `${item.value} (ИНН: ${item.data.inn})`;
+                }}
+                onItemClick={(e) => handleSelectOrganization(e.itemData)}
+                placeholder="Например: ООО Ромашка, 7707083893, г. Москва"
+                disabled={loading}
+                stylingMode="outlined"
+                minSearchLength={3}
+                searchTimeout={500}
+                showClearButton={true}
               />
-            </div>
-
-            {success && (
-              <div className="success-message">
-                ✅ Организация найдена! Данные заполнены автоматически
+              <div className="form-hint">
+                💡 Введите минимум 3 символа для поиска
               </div>
-            )}
+            </div>
           </div>
 
           {/* Основные данные */}

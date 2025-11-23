@@ -61,20 +61,12 @@
   margin: 0 0 24px 0;
 }
 
-/* Поиск по ИНН */
-.inn-search {
-  display: flex;
-  gap: 16px;
-  align-items: flex-end;
-}
-
-.inn-search .form-group {
-  flex: 1;
-}
-
-.inn-search .dx-button {
-  height: 52px;
-  min-width: 180px;
+/* Подсказка */
+.form-hint {
+  font-size: 12px;
+  color: #666;
+  margin-top: 8px;
+  font-style: italic;
 }
 
 /* Группы полей */
@@ -102,11 +94,13 @@
 
 /* Стилизация полей */
 .create-store-form .dx-textbox,
-.create-store-form .dx-textarea {
+.create-store-form .dx-textarea,
+.create-store-form .dx-autocomplete {
   border-radius: 12px;
 }
 
-.create-store-form .dx-textbox {
+.create-store-form .dx-textbox,
+.create-store-form .dx-autocomplete {
   height: 52px;
 }
 
