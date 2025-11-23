@@ -1,9 +1,10 @@
 """
 Auth schemas
 """
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, field_serializer
 from typing import Optional
 from datetime import datetime
+from uuid import UUID
 
 
 # Request schemas
@@ -32,7 +33,7 @@ class TokenResponse(BaseModel):
 
 class UserResponse(BaseModel):
     """Информация о пользователе"""
-    id: str
+    id: UUID
     phone: str
     email: Optional[str]
     full_name: str
@@ -40,6 +41,11 @@ class UserResponse(BaseModel):
     is_verified: bool
     created_at: datetime
     last_login: Optional[datetime]
+    
+    @field_serializer('id')
+    def serialize_id(self, value: UUID) -> str:
+        """Конвертируем UUID в строку для JSON"""
+        return str(value)
     
     class Config:
         from_attributes = True
