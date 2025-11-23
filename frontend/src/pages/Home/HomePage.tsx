@@ -42,7 +42,7 @@ export default function HomePage() {
                 className="category-card"
                 style={{ cursor: 'pointer' }}
               >
-                <div className="category-card__icon">{category.icon}</div>
+                <div className="category-card__icon">{category.image || category.icon}</div>
                 <div className="category-card__name">{category.name}</div>
               </div>
             ))}
