@@ -129,6 +129,35 @@ export default function ProductEditPage() {
       </div>
 
       <form onSubmit={handleSubmit} className="product-form">
+        <div className="product-preview">
+          <div className="preview-image">
+            {formData.image ? (
+              <>
+                <img src={formData.image} alt="Preview" />
+                <Button
+                  icon="trash"
+                  onClick={() => setFormData({ ...formData, image: '' })}
+                  className="remove-image-btn"
+                  type="danger"
+                />
+              </>
+            ) : (
+              <div className="no-preview">📦</div>
+            )}
+          </div>
+          <div className="preview-info">
+            <h3>{formData.name || 'Новый товар'}</h3>
+            <p className="preview-price">{formData.price || 0} ₽/{formData.unit || 'шт'}</p>
+            {formData.description && (
+              <p className="preview-description">{formData.description}</p>
+            )}
+            <div className="preview-meta">
+              <span>⭐ {formData.rating || 0}</span>
+              <span>{formData.in_stock ? '✅ В наличии' : '❌ Нет в наличии'}</span>
+            </div>
+          </div>
+        </div>
+
         <div className="form-section">
           <h2>Основная информация</h2>
           
