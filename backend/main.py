@@ -10,7 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 import traceback
 import json
 
-from api.routers import products, categories, stores, orders, auth, cart, images, my_stores, store_products
+from api.routers import auth, products, categories, stores, orders, cart, images, my_stores, store_products, store_owners
 from database import engine, Base, get_db
 from config import settings
 from fastapi.staticfiles import StaticFiles
@@ -166,6 +166,7 @@ app.include_router(cart.router, prefix="/api/cart", tags=["cart"])
 app.include_router(images.router, prefix="/api/images", tags=["images"])
 app.include_router(my_stores.router)
 app.include_router(store_products.router)
+app.include_router(store_owners.router)
 
 # Статические файлы для изображений
 app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")

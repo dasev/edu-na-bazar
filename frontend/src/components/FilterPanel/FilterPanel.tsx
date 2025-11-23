@@ -51,10 +51,20 @@ export default function FilterPanel() {
   })
 
   const { data: stores = [], isLoading: storesLoading } = useQuery({
-    queryKey: ['stores'],
+    queryKey: ['all-stores'],
     queryFn: async () => {
-      const response = await fetch('http://localhost:8000/api/my-stores')
-      return response.json()
+      try {
+        // Получаем все магазины через публичный endpoint
+        const response = await fetch('http://localhost:8000/api/store-owners/all')
+        if (!response.ok) {
+          return []
+        }
+        const data = await response.json()
+        return Array.isArray(data) ? data : []
+      } catch (error) {
+        console.error('Error loading stores:', error)
+        return []
+      }
     },
   })
 
