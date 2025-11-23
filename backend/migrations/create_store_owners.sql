@@ -1,8 +1,13 @@
 -- Создание таблицы store_owners для магазинов пользователей
 
+-- Удаляем таблицу если существует
+DROP TABLE IF EXISTS store_owners CASCADE;
+
+-- Удаляем тип если существует и создаем заново
+DROP TYPE IF EXISTS store_status CASCADE;
 CREATE TYPE store_status AS ENUM ('pending', 'active', 'suspended', 'rejected');
 
-CREATE TABLE IF NOT EXISTS store_owners (
+CREATE TABLE store_owners (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     owner_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     inn VARCHAR(12) NOT NULL UNIQUE,
@@ -22,9 +27,9 @@ CREATE TABLE IF NOT EXISTS store_owners (
 );
 
 -- Индексы
-CREATE INDEX idx_store_owners_owner_id ON store_owners(owner_id);
-CREATE INDEX idx_store_owners_inn ON store_owners(inn);
-CREATE INDEX idx_store_owners_status ON store_owners(status);
+CREATE INDEX IF NOT EXISTS idx_store_owners_owner_id ON store_owners(owner_id);
+CREATE INDEX IF NOT EXISTS idx_store_owners_inn ON store_owners(inn);
+CREATE INDEX IF NOT EXISTS idx_store_owners_status ON store_owners(status);
 
 -- Комментарии
 COMMENT ON TABLE store_owners IS 'Магазины пользователей';
