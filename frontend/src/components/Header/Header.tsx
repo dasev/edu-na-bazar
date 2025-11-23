@@ -19,13 +19,15 @@ export default function Header() {
   
   // Загружаем корзину при монтировании если пользователь авторизован
   useEffect(() => {
-    if (user) {
+    if (user && isAuthenticated) {
       // Синхронизируем гостевую корзину с серверной
       syncGuestCart().then(() => {
         fetchCart().catch(() => {})
+      }).catch(() => {
+        // Игнорируем ошибки синхронизации
       })
     }
-  }, [user, fetchCart, syncGuestCart])
+  }, [user, isAuthenticated, fetchCart, syncGuestCart])
 
   // Закрытие меню при клике вне его
   useEffect(() => {

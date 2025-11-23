@@ -70,11 +70,24 @@ export const useCartStore = create<CartState>((set, get) => ({
   error: null,
 
   fetchCart: async () => {
+    // Проверяем наличие токена авторизации
+    const token = localStorage.getItem('auth_token')
+    if (!token) {
+      // Если не авторизован, используем гостевую корзину
+      set({ cart: null, isLoading: false })
+      return
+    }
+    
     set({ isLoading: true, error: null })
     try {
       const cart = await cartApi.getCart()
       set({ cart, isLoading: false })
     } catch (error: any) {
+      // Если 401 - пользователь не авторизован, используем гостевую корзину
+      if (error.response?.status === 401) {
+        set({ cart: null, isLoading: false })
+        return
+      }
       set({ 
         error: error.response?.data?.detail || 'Ошибка загрузки корзины',
         isLoading: false 
@@ -192,6 +205,13 @@ export const useCartStore = create<CartState>((set, get) => ({
 
   // Синхронизация гостевой корзины с серверной при входе
   syncGuestCart: async () => {
+    // Проверяем наличие токена авторизации
+    const token = localStorage.getItem('auth_token')
+    if (!token) {
+      // Если не авторизован, не синхронизируем
+      return
+    }
+    
     const guestCart = getGuestCart()
     if (guestCart.items.length === 0) return
     
@@ -209,7 +229,12 @@ export const useCartStore = create<CartState>((set, get) => ({
       await get().fetchCart()
       
       set({ guestCart: { items: [] }, isLoading: false })
-    } catch (error) {
+    } catch (error: any) {
+      // Если 401 - игнорируем, пользователь не авторизован
+      if (error.response?.status === 401) {
+        set({ isLoading: false })
+        return
+      }
       console.error('Error syncing guest cart:', error)
       set({ isLoading: false })
     }
