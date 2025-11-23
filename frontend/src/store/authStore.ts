@@ -79,14 +79,27 @@ export const useAuthStore = create<AuthState>()(
 )
 
 // Принудительная синхронизация при загрузке модуля
-// Это гарантирует что токен будет в localStorage даже если onRehydrateStorage не сработал
-setTimeout(() => {
-  const state = useAuthStore.getState()
-  if (state.token && !localStorage.getItem('auth_token')) {
-    localStorage.setItem('auth_token', state.token)
-    console.log('🔄 Токен синхронизирован с localStorage')
+// Проверяем сразу и через 100мс для надежности
+const syncTokenToLocalStorage = () => {
+  const authStorage = localStorage.getItem('auth-storage')
+  if (authStorage) {
+    try {
+      const parsed = JSON.parse(authStorage)
+      if (parsed?.state?.token && !localStorage.getItem('auth_token')) {
+        localStorage.setItem('auth_token', parsed.state.token)
+        console.log('🔄 Токен синхронизирован с localStorage')
+      }
+      if (parsed?.state?.user && !localStorage.getItem('user')) {
+        localStorage.setItem('user', JSON.stringify(parsed.state.user))
+      }
+    } catch (e) {
+      console.error('Ошибка синхронизации токена:', e)
+    }
   }
-  if (state.user && !localStorage.getItem('user')) {
-    localStorage.setItem('user', JSON.stringify(state.user))
-  }
-}, 100)
+}
+
+// Синхронизируем сразу
+syncTokenToLocalStorage()
+
+// И еще раз через 100мс для надежности
+setTimeout(syncTokenToLocalStorage, 100)
