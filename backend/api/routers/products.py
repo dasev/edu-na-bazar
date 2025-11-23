@@ -22,6 +22,7 @@ router = APIRouter()
 @router.get("/", response_model=ProductListResponse)
 async def get_products(
     category_id: Optional[int] = Query(None),
+    store_id: Optional[int] = Query(None),
     min_price: Optional[float] = Query(None),
     max_price: Optional[float] = Query(None),
     in_stock: Optional[bool] = Query(None),
@@ -36,6 +37,7 @@ async def get_products(
     Получить список товаров с фильтрацией и пагинацией
     
     - **category_id**: Фильтр по категории
+    - **store_id**: Фильтр по магазину
     - **min_price, max_price**: Диапазон цен
     - **min_rating**: Минимальный рейтинг
     - **in_stock**: Только в наличии
@@ -51,6 +53,9 @@ async def get_products(
     # Фильтры
     if category_id:
         query = query.where(Product.category_id == category_id)
+    
+    if store_id:
+        query = query.where(Product.store_owner_id == store_id)
     
     if min_price is not None:
         query = query.where(Product.price >= min_price)

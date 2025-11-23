@@ -24,6 +24,7 @@ export default function CatalogPage() {
   // Извлекаем только данные фильтров (без функций) и мемоизируем
   const filters = useMemo(() => ({
     category_id: filtersStore.category_id,
+    store_id: filtersStore.store_id,
     min_price: filtersStore.min_price,
     max_price: filtersStore.max_price,
     min_rating: filtersStore.min_rating,
@@ -35,6 +36,7 @@ export default function CatalogPage() {
     limit: filtersStore.limit,
   }), [
     filtersStore.category_id,
+    filtersStore.store_id,
     filtersStore.min_price,
     filtersStore.max_price,
     filtersStore.min_rating,
