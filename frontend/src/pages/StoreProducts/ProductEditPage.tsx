@@ -29,6 +29,9 @@ export default function ProductEditPage() {
     image: '',
   })
 
+  const [images, setImages] = useState<string[]>([])
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0)
+
   // Получаем товар если редактируем
   const { data: product, isLoading } = useQuery({
     queryKey: ['product', productId],
@@ -61,8 +64,32 @@ export default function ProductEditPage() {
         reviews_count: product.reviews_count || 0,
         image: product.image || '',
       })
+      if (product.image) {
+        setImages([product.image])
+      }
     }
   }, [product, isNew])
+
+  const addImage = (url: string) => {
+    if (url && !images.includes(url)) {
+      const newImages = [...images, url]
+      setImages(newImages)
+      setFormData({ ...formData, image: url })
+      setSelectedImageIndex(newImages.length - 1)
+    }
+  }
+
+  const removeImage = (index: number) => {
+    const newImages = images.filter((_, i) => i !== index)
+    setImages(newImages)
+    if (newImages.length > 0) {
+      setSelectedImageIndex(0)
+      setFormData({ ...formData, image: newImages[0] })
+    } else {
+      setSelectedImageIndex(0)
+      setFormData({ ...formData, image: '' })
+    }
+  }
 
   // Создание товара
   const createMutation = useMutation({
@@ -130,20 +157,43 @@ export default function ProductEditPage() {
 
       <form onSubmit={handleSubmit} className="product-form">
         <div className="product-preview">
-          <div className="preview-image">
-            {formData.image ? (
-              <>
-                <img src={formData.image} alt="Preview" />
-                <Button
-                  icon="trash"
-                  onClick={() => setFormData({ ...formData, image: '' })}
-                  className="remove-image-btn"
-                  type="danger"
+          <div className="preview-gallery">
+            <div className="thumbnails">
+              {images.map((img, index) => (
+                <div
+                  key={index}
+                  className={`thumbnail ${index === selectedImageIndex ? 'active' : ''}`}
+                  onClick={() => setSelectedImageIndex(index)}
+                >
+                  <img src={img} alt={`Thumbnail ${index + 1}`} />
+                  <Button
+                    icon="trash"
+                    onClick={() => removeImage(index)}
+                    className="remove-thumb-btn"
+                    type="danger"
+                  />
+                </div>
+              ))}
+              <div className="add-image-thumb">
+                <TextBox
+                  placeholder="URL изображения"
+                  onValueChanged={(e) => {
+                    if (e.value && e.event?.type === 'change') {
+                      addImage(e.value)
+                      e.component.option('value', '')
+                    }
+                  }}
+                  mode="text"
                 />
-              </>
-            ) : (
-              <div className="no-preview">📦</div>
-            )}
+              </div>
+            </div>
+            <div className="main-image">
+              {images.length > 0 ? (
+                <img src={images[selectedImageIndex]} alt="Main preview" />
+              ) : (
+                <div className="no-preview">📦<br/>Добавьте изображение</div>
+              )}
+            </div>
           </div>
           <div className="preview-info">
             <h3>{formData.name || 'Новый товар'}</h3>
