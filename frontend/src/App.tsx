@@ -17,7 +17,17 @@ import { NotFoundPage } from './pages/NotFound/NotFoundPage'
 import { AboutPage } from './pages/About/AboutPage'
 import './App.css'
 
-const queryClient = new QueryClient()
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000, // 5 минут - данные считаются свежими
+      gcTime: 10 * 60 * 1000, // 10 минут - время хранения в кэше
+      refetchOnWindowFocus: false, // Не перезапрашивать при фокусе окна
+      refetchOnMount: false, // Не перезапрашивать при монтировании если есть кэш
+      retry: 1, // Только 1 повтор при ошибке
+    },
+  },
+})
 
 function App() {
   return (
