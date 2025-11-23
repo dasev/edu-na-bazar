@@ -39,6 +39,7 @@ export interface Product {
 
 export interface ProductFilters {
   category_id?: string
+  store_id?: number
   min_price?: number
   max_price?: number
   min_rating?: number

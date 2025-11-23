@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { Button } from 'devextreme-react/button'
-import { useMemo } from 'react'
+import { useMemo, useEffect } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import ProductCard from '../../components/ProductCard/ProductCard'
 import FilterPanel from '../../components/FilterPanel/FilterPanel'
 import { ProductCardSkeletonGrid } from '../../components/LoadingSkeleton/ProductCardSkeleton'
@@ -10,6 +11,15 @@ import './CatalogPage.css'
 
 export default function CatalogPage() {
   const filtersStore = useFiltersStore()
+  const [searchParams] = useSearchParams()
+  
+  // Применяем фильтр по магазину из URL
+  useEffect(() => {
+    const storeId = searchParams.get('store_id')
+    if (storeId) {
+      filtersStore.setFilter('store_id', parseInt(storeId))
+    }
+  }, [searchParams, filtersStore])
   
   // Извлекаем только данные фильтров (без функций) и мемоизируем
   const filters = useMemo(() => ({
