@@ -164,7 +164,7 @@ export const CreateStorePage = () => {
         <div className="create-store-form">
           {/* Поиск организации */}
           <div className="form-section">
-            <h2>🔍 Поиск организации</h2>
+            <h2><span className="section-icon">🔍</span> Поиск организации</h2>
             <p className="form-section-description">
               Начните вводить название, ИНН или адрес организации
             </p>
@@ -199,7 +199,7 @@ export const CreateStorePage = () => {
 
           {/* Основные данные */}
           <div className="form-section">
-            <h2>📋 Основные данные</h2>
+            <h2><span className="section-icon">📋</span> Основные данные</h2>
 
             <div className="form-group">
               <label className="form-label">Название магазина *</label>
@@ -252,7 +252,7 @@ export const CreateStorePage = () => {
 
           {/* Контактные данные */}
           <div className="form-section">
-            <h2>📞 Контактные данные</h2>
+            <h2><span className="section-icon">📞</span> Контактные данные</h2>
 
             <div className="form-group">
               <label className="form-label">Адрес *</label>
@@ -294,7 +294,7 @@ export const CreateStorePage = () => {
 
           {/* Описание */}
           <div className="form-section">
-            <h2>📝 Описание</h2>
+            <h2><span className="section-icon">📝</span> Описание</h2>
 
             <div className="form-group">
               <label className="form-label">Описание магазина</label>

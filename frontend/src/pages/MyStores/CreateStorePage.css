@@ -5,6 +5,26 @@
   padding: 32px 0;
 }
 
+/* Стили кнопок */
+.create-store-page .dx-button.dx-button-default.dx-button-mode-contained {
+  background-color: #667eea !important;
+  border-color: #667eea !important;
+}
+
+.create-store-page .dx-button.dx-button-default.dx-button-mode-contained:hover:not(:disabled) {
+  background-color: #5568d3 !important;
+  border-color: #5568d3 !important;
+}
+
+.create-store-page .dx-button.dx-button-default.dx-button-mode-outlined {
+  color: #667eea !important;
+  border-color: #667eea !important;
+}
+
+.create-store-page .dx-button.dx-button-default.dx-button-mode-outlined:hover {
+  background-color: rgba(102, 126, 234, 0.1) !important;
+}
+
 .create-store-container {
   max-width: 800px;
   margin: 0 auto;
@@ -51,6 +71,20 @@
   font-weight: 600;
   color: #1a1a1a;
   margin: 0 0 8px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.section-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 8px;
+  font-size: 18px;
 }
 
 .form-section-description {
@@ -152,23 +186,6 @@
   font-weight: 600;
 }
 
-.form-actions .dx-button-default {
-  background: #1a1a1a !important;
-  transition: all 0.3s ease;
-}
-
-.form-actions .dx-button-default:hover:not(:disabled) {
-  background: #333 !important;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-}
-
-.form-actions .dx-button-default:disabled {
-  background: #ccc !important;
-  cursor: not-allowed;
-  transform: none;
-  opacity: 0.6;
-}
 
 /* Адаптивность */
 @media (max-width: 768px) {

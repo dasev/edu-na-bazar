@@ -5,6 +5,26 @@
   padding: 32px 0;
 }
 
+/* Стили кнопок */
+.my-stores-page .dx-button.dx-button-default.dx-button-mode-contained {
+  background-color: #667eea !important;
+  border-color: #667eea !important;
+}
+
+.my-stores-page .dx-button.dx-button-default.dx-button-mode-contained:hover {
+  background-color: #5568d3 !important;
+  border-color: #5568d3 !important;
+}
+
+.my-stores-page .dx-button.dx-button-default.dx-button-mode-outlined {
+  color: #667eea !important;
+  border-color: #667eea !important;
+}
+
+.my-stores-page .dx-button.dx-button-default.dx-button-mode-outlined:hover {
+  background-color: rgba(102, 126, 234, 0.1) !important;
+}
+
 .my-stores-container {
   max-width: 1200px;
   margin: 0 auto;
