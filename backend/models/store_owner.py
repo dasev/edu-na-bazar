@@ -45,6 +45,7 @@ class StoreOwner(Base):
     
     # Relationships
     owner = relationship("User", backref="owned_stores")
+    products = relationship("Product", back_populates="store_owner")
     
     def __repr__(self):
         return f"<StoreOwner {self.name} (ИНН: {self.inn})>"
