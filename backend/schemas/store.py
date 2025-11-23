@@ -44,7 +44,7 @@ class LocationResponse(BaseModel):
 
 class StoreResponse(BaseModel):
     """Схема ответа с магазином"""
-    id: str
+    id: int
     name: str
     address: str
     phone: Optional[str]

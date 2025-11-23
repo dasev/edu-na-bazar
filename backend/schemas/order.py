@@ -10,7 +10,7 @@ from decimal import Decimal
 # Request schemas
 class OrderItemCreate(BaseModel):
     """Схема для создания товара в заказе"""
-    product_id: str
+    product_id: int
     quantity: int = Field(..., gt=0)
 
 
@@ -34,14 +34,13 @@ class OrderUpdateStatus(BaseModel):
 # Response schemas
 class OrderItemResponse(BaseModel):
     """Схема ответа с товаром в заказе"""
-    id: str
-    product_id: str
+    id: int
+    product_id: int
     product_name: str
     product_image: Optional[str]
     quantity: int
-    price: Decimal
+    price: float
     subtotal: float
-    created_at: datetime
     
     class Config:
         from_attributes = True
@@ -49,10 +48,10 @@ class OrderItemResponse(BaseModel):
 
 class OrderResponse(BaseModel):
     """Схема ответа с заказом"""
-    id: str
-    user_id: str
+    id: int
+    user_id: int
     status: str
-    total: Decimal
+    total: float
     delivery_address: str
     delivery_time: Optional[datetime]
     delivery_comment: Optional[str]

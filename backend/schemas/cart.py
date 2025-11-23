@@ -10,7 +10,7 @@ from decimal import Decimal
 # Request schemas
 class CartItemCreate(BaseModel):
     """Схема для добавления товара в корзину"""
-    product_id: str
+    product_id: int
     quantity: int = Field(default=1, gt=0)
 
 
@@ -22,8 +22,8 @@ class CartItemUpdate(BaseModel):
 # Response schemas
 class CartItemResponse(BaseModel):
     """Схема ответа с товаром в корзине"""
-    id: str
-    product_id: str
+    id: int
+    product_id: int
     quantity: int
     created_at: datetime
     updated_at: datetime
