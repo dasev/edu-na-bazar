@@ -170,15 +170,6 @@ export default function Header() {
             )}
           </div>
         </div>
-        
-        {/* Категории */}
-        <div className="ozon-header__categories">
-          <nav>
-            <Link to="/">Главная</Link>
-            <Link to="/catalog">Каталог</Link>
-            <Link to="/stores">Магазины</Link>
-          </nav>
-        </div>
       </header>
 
       {/* Auth Modal */}
