@@ -58,9 +58,6 @@ async def get_products(
     if max_price is not None:
         query = query.where(Product.price <= max_price)
     
-    if min_rating is not None:
-        query = query.where(Product.rating >= min_rating)
-    
     if in_stock is not None:
         query = query.where(Product.in_stock == in_stock)
     
