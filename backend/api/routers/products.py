@@ -102,7 +102,7 @@ async def get_products(
 
 
 @router.get("/{product_id}", response_model=ProductResponse)
-async def get_product(product_id: str, db: AsyncSession = Depends(get_db)):
+async def get_product(product_id: int, db: AsyncSession = Depends(get_db)):
     """Получить товар по ID"""
     result = await db.execute(
         select(Product).where(Product.id == product_id)
@@ -138,7 +138,7 @@ async def create_product(
 
 @router.put("/{product_id}", response_model=ProductResponse)
 async def update_product(
-    product_id: str,
+    product_id: int,
     product_data: ProductUpdate,
     db: AsyncSession = Depends(get_db)
 ):
@@ -163,7 +163,7 @@ async def update_product(
 
 
 @router.delete("/{product_id}", status_code=204)
-async def delete_product(product_id: str, db: AsyncSession = Depends(get_db)):
+async def delete_product(product_id: int, db: AsyncSession = Depends(get_db)):
     """Удалить товар"""
     result = await db.execute(
         select(Product).where(Product.id == product_id)
