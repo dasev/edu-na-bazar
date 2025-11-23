@@ -21,19 +21,17 @@
 .create-store-header h1 {
   font-size: 32px;
   font-weight: 700;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: #1a1a1a;
   margin: 0;
 }
 
 /* Форма */
 .create-store-form {
   background: white;
-  border-radius: 16px;
+  border-radius: 12px;
   padding: 32px;
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.08);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e0e0e0;
 }
 
 /* Секции формы */
@@ -110,8 +108,8 @@
 }
 
 .create-store-form .dx-texteditor.dx-state-focused {
-  border-color: #005bff;
-  box-shadow: 0 0 0 3px rgba(0, 91, 255, 0.1);
+  border-color: #1a1a1a;
+  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.05);
 }
 
 /* Сообщения */
@@ -155,20 +153,21 @@
 }
 
 .form-actions .dx-button-default {
-  background: #005bff !important;
+  background: #1a1a1a !important;
   transition: all 0.3s ease;
 }
 
-.form-actions .dx-button-default:hover {
-  background: #0047cc !important;
+.form-actions .dx-button-default:hover:not(:disabled) {
+  background: #333 !important;
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 91, 255, 0.3);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 .form-actions .dx-button-default:disabled {
   background: #ccc !important;
   cursor: not-allowed;
   transform: none;
+  opacity: 0.6;
 }
 
 /* Адаптивность */
