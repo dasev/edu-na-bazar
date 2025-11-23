@@ -101,7 +101,9 @@ export default function Header() {
             {/* Авторизация */}
             {isAuthenticated ? (
               <div className="ozon-header__user">
-                <span className="user-name">{user?.full_name || user?.phone}</span>
+                <div className="user-avatar" title={user?.full_name || user?.phone}>
+                  👤
+                </div>
                 <Button
                   text="Выйти"
                   type="normal"
