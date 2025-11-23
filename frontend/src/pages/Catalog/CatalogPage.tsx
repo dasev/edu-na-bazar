@@ -19,7 +19,8 @@ export default function CatalogPage() {
     if (storeId) {
       filtersStore.setFilter('store_id', parseInt(storeId))
     }
-  }, [searchParams, filtersStore])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams])
   
   // Извлекаем только данные фильтров (без функций) и мемоизируем
   const filters = useMemo(() => ({
