@@ -72,10 +72,30 @@ export default function AuthModal({ visible, onClose, onSuccess }: AuthModalProp
     return '+' + digits
   }
 
+  // Проверка полноты номера телефона
+  const isPhoneComplete = (formatted: string) => {
+    const digits = formatted.replace(/\D/g, '')
+    return digits.length === 11 // +7 и 10 цифр
+  }
+
   // Обработчик изменения телефона
   const handlePhoneChange = (value: string) => {
     const formatted = formatPhone(value)
     setPhone(formatted)
+  }
+
+  // Обработчик Enter на поле телефона
+  const handlePhoneKeyPress = (e: any) => {
+    if (e.event.key === 'Enter' && isPhoneComplete(phone) && !loading) {
+      handleCheckPhone()
+    }
+  }
+
+  // Обработчик Enter на поле кода
+  const handleCodeKeyPress = (e: any) => {
+    if (e.event.key === 'Enter' && code.length === 6 && !loading) {
+      handleVerifyCode()
+    }
   }
 
   const handleCheckPhone = async () => {
@@ -234,6 +254,7 @@ export default function AuthModal({ visible, onClose, onSuccess }: AuthModalProp
                   placeholder="+7 (999) 123-45-67"
                   value={phone}
                   onValueChanged={(e) => handlePhoneChange(e.value)}
+                  onKeyDown={handlePhoneKeyPress}
                   mode="tel"
                   disabled={loading}
                   stylingMode="outlined"
@@ -249,7 +270,7 @@ export default function AuthModal({ visible, onClose, onSuccess }: AuthModalProp
                 stylingMode="contained"
                 width="100%"
                 onClick={handleCheckPhone}
-                disabled={loading || !phone}
+                disabled={loading || !isPhoneComplete(phone)}
               />
             </div>
           </>
@@ -336,6 +357,7 @@ export default function AuthModal({ visible, onClose, onSuccess }: AuthModalProp
                 placeholder="000000"
                 value={code}
                 onValueChanged={(e) => setCode(e.value)}
+                onKeyDown={handleCodeKeyPress}
                 mode="tel"
                 maxLength={6}
                 disabled={loading}
