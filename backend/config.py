@@ -1,0 +1,34 @@
+"""
+Configuration settings
+"""
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+
+class Settings:
+    """Application settings"""
+    
+    # Database
+    DATABASE_URL: str = os.getenv("DATABASE_URL", "postgresql+asyncpg://postgres:postgres@localhost:5432/edu_na_bazar?client_encoding=utf8")
+    
+    # Redis
+    REDIS_URL: str = os.getenv("REDIS_URL", "redis://localhost:6380/0")
+    
+    # Security
+    SECRET_KEY: str = os.getenv("SECRET_KEY", "your-secret-key-change-in-production")
+    ALGORITHM: str = "HS256"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
+    
+    # CORS
+    ALLOWED_ORIGINS: list = [
+        "http://localhost:3000",
+        "http://localhost:3001",
+    ]
+    
+    # Mapbox
+    MAPBOX_ACCESS_TOKEN: str = os.getenv("MAPBOX_ACCESS_TOKEN", "")
+
+
+settings = Settings()

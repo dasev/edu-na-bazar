@@ -1,0 +1,89 @@
+.auth-modal {
+  padding: 8px;
+}
+
+.auth-modal__description {
+  text-align: center;
+  color: var(--ozon-text-secondary);
+  margin-bottom: 24px;
+  line-height: 1.5;
+}
+
+.auth-modal__description strong {
+  color: var(--ozon-text);
+  font-weight: 600;
+}
+
+.auth-modal__form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.auth-modal__form .dx-textbox,
+.auth-modal__form .dx-button {
+  border-radius: 12px;
+}
+
+.auth-modal__error {
+  background: #FEE;
+  color: #C00;
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 14px;
+  text-align: center;
+}
+
+.auth-modal__dev-code {
+  background: #FFF3CD;
+  border: 2px solid #FFB800;
+  color: #856404;
+  padding: 12px;
+  border-radius: 8px;
+  text-align: center;
+  margin-bottom: 16px;
+  font-size: 14px;
+}
+
+.auth-modal__dev-code strong {
+  font-size: 20px;
+  letter-spacing: 4px;
+  color: #000;
+}
+
+.auth-modal__footer {
+  margin-top: 20px;
+  text-align: center;
+  font-size: 12px;
+  color: var(--ozon-text-secondary);
+}
+
+.auth-modal__footer a {
+  color: var(--ozon-blue);
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.auth-modal__footer a:hover {
+  text-decoration: underline;
+}
+
+/* DevExtreme customization */
+.auth-modal .dx-button-default {
+  background: var(--ozon-blue) !important;
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.auth-modal .dx-button-default:hover {
+  background: var(--ozon-blue-hover) !important;
+}
+
+.auth-modal .dx-textbox {
+  height: 48px;
+}
+
+.auth-modal .dx-texteditor-label {
+  font-weight: 500;
+  color: var(--ozon-text);
+}

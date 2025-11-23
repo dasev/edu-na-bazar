@@ -1,0 +1,319 @@
+.about-page {
+  min-height: 100vh;
+}
+
+/* Hero секция */
+.about-hero {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 80px 20px;
+  text-align: center;
+}
+
+.about-hero__container {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.about-hero__title {
+  font-size: 48px;
+  font-weight: 900;
+  margin: 0 0 20px 0;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+
+.about-hero__subtitle {
+  font-size: 24px;
+  font-weight: 400;
+  margin: 0;
+  opacity: 0.95;
+}
+
+/* Общие стили секций */
+.about-section {
+  padding: 80px 20px;
+}
+
+.about-section--gray {
+  background: #f9fafb;
+}
+
+.about-section--accent {
+  background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+}
+
+.about-container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.section-title {
+  font-size: 36px;
+  font-weight: 700;
+  text-align: center;
+  margin: 0 0 48px 0;
+  color: #1a202c;
+}
+
+/* Миссия */
+.about-mission {
+  max-width: 800px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.mission-text {
+  font-size: 20px;
+  line-height: 1.8;
+  color: #4a5568;
+}
+
+/* Преимущества */
+.benefits-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 32px;
+}
+
+.benefit-card {
+  background: white;
+  padding: 32px;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+  text-align: center;
+}
+
+.benefit-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+.benefit-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+.benefit-card h3 {
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0 0 12px 0;
+  color: #1a202c;
+}
+
+.benefit-card p {
+  font-size: 16px;
+  line-height: 1.6;
+  color: #718096;
+  margin: 0;
+}
+
+/* Шаги */
+.steps-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 32px;
+}
+
+.step-card {
+  text-align: center;
+  padding: 24px;
+}
+
+.step-number {
+  width: 64px;
+  height: 64px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  font-weight: 700;
+  margin: 0 auto 20px auto;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.step-card h3 {
+  font-size: 18px;
+  font-weight: 700;
+  margin: 0 0 12px 0;
+  color: #1a202c;
+}
+
+.step-card p {
+  font-size: 15px;
+  line-height: 1.6;
+  color: #718096;
+  margin: 0;
+}
+
+/* Для фермеров */
+.farmer-section {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 64px;
+  align-items: center;
+}
+
+.farmer-content h2 {
+  text-align: left;
+  margin-bottom: 24px;
+}
+
+.farmer-text {
+  font-size: 20px;
+  font-weight: 600;
+  color: #1a202c;
+  margin: 0 0 24px 0;
+}
+
+.farmer-benefits {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 32px 0;
+}
+
+.farmer-benefits li {
+  font-size: 16px;
+  line-height: 2;
+  color: #4a5568;
+}
+
+.farmer-image {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: white;
+  border-radius: 24px;
+  padding: 64px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+.farmer-emoji {
+  font-size: 120px;
+  line-height: 1;
+}
+
+/* Статистика */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 32px;
+}
+
+.stat-card {
+  text-align: center;
+  padding: 32px;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.stat-number {
+  font-size: 48px;
+  font-weight: 900;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 8px;
+}
+
+.stat-label {
+  font-size: 16px;
+  color: #718096;
+  font-weight: 600;
+}
+
+/* CTA */
+.about-cta {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 80px 20px;
+  text-align: center;
+}
+
+.about-cta h2 {
+  font-size: 36px;
+  font-weight: 700;
+  margin: 0 0 16px 0;
+}
+
+.about-cta p {
+  font-size: 20px;
+  margin: 0 0 32px 0;
+  opacity: 0.95;
+}
+
+.cta-buttons {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+  .about-hero__title {
+    font-size: 32px;
+  }
+
+  .about-hero__subtitle {
+    font-size: 18px;
+  }
+
+  .section-title {
+    font-size: 28px;
+    margin-bottom: 32px;
+  }
+
+  .about-section {
+    padding: 48px 20px;
+  }
+
+  .benefits-grid,
+  .steps-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .farmer-section {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+
+  .farmer-content h2 {
+    text-align: center;
+  }
+
+  .farmer-image {
+    padding: 48px;
+  }
+
+  .farmer-emoji {
+    font-size: 80px;
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .about-cta h2 {
+    font-size: 28px;
+  }
+
+  .about-cta p {
+    font-size: 16px;
+  }
+
+  .cta-buttons {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .cta-buttons .dx-button {
+    width: 100% !important;
+    max-width: 300px;
+  }
+}

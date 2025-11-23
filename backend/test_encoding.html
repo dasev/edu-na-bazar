@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тест кодировки API</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        .category {
+            padding: 15px;
+            margin: 10px 0;
+            background: #f0f0f0;
+            border-radius: 8px;
+        }
+        .product {
+            padding: 15px;
+            margin: 10px 0;
+            background: #e8f4f8;
+            border-radius: 8px;
+        }
+        h1 { color: #333; }
+        h2 { color: #666; }
+        .icon { font-size: 24px; }
+    </style>
+</head>
+<body>
+    <h1>Тест кодировки API - Еду на базар</h1>
+    
+    <h2>Категории:</h2>
+    <div id="categories"></div>
+    
+    <h2>Товары:</h2>
+    <div id="products"></div>
+    
+    <h2>Тест кодировки:</h2>
+    <div id="encoding-test"></div>
+
+    <script>
+        // Загрузка категорий
+        fetch('http://localhost:8000/api/categories')
+            .then(r => r.json())
+            .then(categories => {
+                const container = document.getElementById('categories');
+                categories.forEach(cat => {
+                    container.innerHTML += `
+                        <div class="category">
+                            <span class="icon">${cat.icon}</span>
+                            <strong>${cat.name}</strong> (${cat.slug})
+                        </div>
+                    `;
+                });
+            })
+            .catch(err => {
+                document.getElementById('categories').innerHTML = 
+                    '<p style="color: red;">Ошибка: ' + err.message + '</p>';
+            });
+
+        // Загрузка товаров
+        fetch('http://localhost:8000/api/products?limit=5')
+            .then(r => r.json())
+            .then(data => {
+                const container = document.getElementById('products');
+                data.data.forEach(prod => {
+                    container.innerHTML += `
+                        <div class="product">
+                            <strong>${prod.name}</strong><br>
+                            Цена: ${prod.price} ₽<br>
+                            Рейтинг: ⭐ ${prod.rating}<br>
+                            Описание: ${prod.description || 'Нет описания'}
+                        </div>
+                    `;
+                });
+            })
+            .catch(err => {
+                document.getElementById('products').innerHTML = 
+                    '<p style="color: red;">Ошибка: ' + err.message + '</p>';
+            });
+
+        // Тест кодировки
+        fetch('http://localhost:8000/test-encoding')
+            .then(r => r.json())
+            .then(data => {
+                const container = document.getElementById('encoding-test');
+                container.innerHTML = `
+                    <div class="category">
+                        <strong>Сообщение:</strong> ${data.message}<br>
+                        <strong>Категории:</strong> ${data.categories.join(', ')}<br>
+                        <strong>Товар:</strong> ${data.product}<br>
+                        <strong>Описание:</strong> ${data.description}
+                    </div>
+                `;
+            })
+            .catch(err => {
+                document.getElementById('encoding-test').innerHTML = 
+                    '<p style="color: red;">Ошибка: ' + err.message + '</p>';
+            });
+    </script>
+</body>
+</html>

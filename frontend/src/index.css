@@ -1,0 +1,45 @@
+:root {
+  --ozon-blue: #005BFF;
+  --ozon-blue-hover: #0047CC;
+  --ozon-orange: #FF6934;
+  --ozon-bg: #F2F3F5;
+  --ozon-text: #001A34;
+  --ozon-text-secondary: #6B7280;
+  --ozon-border: #E5E7EB;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  background: linear-gradient(180deg, #f8f9ff 0%, #f2f3f5 100%);
+  background-attachment: fixed;
+  color: var(--ozon-text);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+/* DevExtreme customization */
+.dx-button-mode-contained.dx-button-default {
+  background-color: var(--ozon-blue) !important;
+  border-radius: 12px;
+}
+
+.dx-button-mode-contained.dx-button-default:hover {
+  background-color: var(--ozon-blue-hover) !important;
+}
+
+.dx-textbox,
+.dx-selectbox,
+.dx-numberbox {
+  border-radius: 12px;
+}
+

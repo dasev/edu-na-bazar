@@ -1,0 +1,130 @@
+.checkout-page {
+  padding: 20px 0;
+  background: #f6f6f6;
+  min-height: calc(100vh - 200px);
+}
+
+.checkout-page__container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.checkout-page__container h1 {
+  font-size: 32px;
+  font-weight: 600;
+  margin: 0 0 30px 0;
+  color: #333;
+}
+
+.checkout-page__content {
+  display: grid;
+  grid-template-columns: 1fr 400px;
+  gap: 30px;
+}
+
+.checkout-page__form {
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+}
+
+.checkout-section {
+  background: white;
+  padding: 25px;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.checkout-section h2 {
+  font-size: 22px;
+  font-weight: 600;
+  margin: 0 0 20px 0;
+  color: #333;
+}
+
+.form-field {
+  margin-bottom: 20px;
+}
+
+.form-field:last-child {
+  margin-bottom: 0;
+}
+
+.form-field label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: #333;
+  font-size: 14px;
+}
+
+.checkout-page__summary {
+  position: sticky;
+  top: 20px;
+  height: fit-content;
+}
+
+.order-summary {
+  background: white;
+  padding: 25px;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.order-summary h3 {
+  font-size: 22px;
+  font-weight: 600;
+  margin: 0 0 20px 0;
+  color: #333;
+}
+
+.order-summary__items {
+  border-top: 1px solid #e5e5e5;
+  border-bottom: 1px solid #e5e5e5;
+  padding: 15px 0;
+  margin-bottom: 15px;
+}
+
+.order-summary__item {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  font-size: 14px;
+}
+
+.item-name {
+  color: #666;
+}
+
+.item-price {
+  font-weight: 600;
+  color: #333;
+}
+
+.order-summary__total {
+  display: flex;
+  justify-content: space-between;
+  font-size: 20px;
+  font-weight: 700;
+  color: #333;
+  margin-bottom: 20px;
+}
+
+.order-summary__note {
+  margin-top: 15px;
+  font-size: 12px;
+  color: #999;
+  text-align: center;
+  line-height: 1.4;
+}
+
+@media (max-width: 968px) {
+  .checkout-page__content {
+    grid-template-columns: 1fr;
+  }
+
+  .checkout-page__summary {
+    position: static;
+  }
+}

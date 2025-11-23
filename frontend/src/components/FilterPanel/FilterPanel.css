@@ -1,0 +1,57 @@
+.filter-panel {
+  background: white;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  position: sticky;
+  top: 20px;
+}
+
+.filter-panel__header {
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #e5e5e5;
+}
+
+.filter-panel__header .dx-button {
+  font-size: 14px;
+  color: #667eea;
+}
+
+.filter-panel__content {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.filter-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.filter-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+}
+
+.filter-price {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 10px;
+  align-items: center;
+}
+
+.filter-price__separator {
+  color: #999;
+  font-size: 14px;
+}
+
+/* Адаптивность */
+@media (max-width: 968px) {
+  .filter-panel {
+    position: static;
+    margin-bottom: 20px;
+  }
+}
