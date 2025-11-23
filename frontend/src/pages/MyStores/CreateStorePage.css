@@ -1,0 +1,210 @@
+/* Создание магазина */
+.create-store-page {
+  min-height: calc(100vh - 80px);
+  background: linear-gradient(180deg, #f8f9fa 0%, #ffffff 100%);
+  padding: 32px 0;
+}
+
+.create-store-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.create-store-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.create-store-header h1 {
+  font-size: 32px;
+  font-weight: 700;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin: 0;
+}
+
+/* Форма */
+.create-store-form {
+  background: white;
+  border-radius: 16px;
+  padding: 32px;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.08);
+}
+
+/* Секции формы */
+.form-section {
+  margin-bottom: 32px;
+  padding-bottom: 32px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.form-section:last-of-type {
+  border-bottom: none;
+  margin-bottom: 24px;
+}
+
+.form-section h2 {
+  font-size: 20px;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin: 0 0 8px 0;
+}
+
+.form-section-description {
+  font-size: 14px;
+  color: #666;
+  margin: 0 0 24px 0;
+}
+
+/* Поиск по ИНН */
+.inn-search {
+  display: flex;
+  gap: 16px;
+  align-items: flex-end;
+}
+
+.inn-search .form-group {
+  flex: 1;
+}
+
+.inn-search .dx-button {
+  height: 52px;
+  min-width: 180px;
+}
+
+/* Группы полей */
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group:last-child {
+  margin-bottom: 0;
+}
+
+.form-label {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  color: #1a1a1a;
+  margin-bottom: 8px;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+/* Стилизация полей */
+.create-store-form .dx-textbox,
+.create-store-form .dx-textarea {
+  border-radius: 12px;
+}
+
+.create-store-form .dx-textbox {
+  height: 52px;
+}
+
+.create-store-form .dx-texteditor-input {
+  font-size: 16px;
+  padding: 0 16px;
+}
+
+.create-store-form .dx-texteditor.dx-state-focused {
+  border-color: #005bff;
+  box-shadow: 0 0 0 3px rgba(0, 91, 255, 0.1);
+}
+
+/* Сообщения */
+.success-message {
+  background: #d4edda;
+  color: #155724;
+  padding: 12px 16px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 500;
+  margin-top: 16px;
+  border: 1px solid #c3e6cb;
+}
+
+.error-message {
+  background: #f8d7da;
+  color: #721c24;
+  padding: 12px 16px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 500;
+  border: 1px solid #f5c6cb;
+}
+
+/* Кнопки действий */
+.form-actions {
+  display: flex;
+  gap: 16px;
+  justify-content: flex-end;
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.form-actions .dx-button {
+  min-width: 150px;
+  height: 52px;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.form-actions .dx-button-default {
+  background: #005bff !important;
+  transition: all 0.3s ease;
+}
+
+.form-actions .dx-button-default:hover {
+  background: #0047cc !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 91, 255, 0.3);
+}
+
+.form-actions .dx-button-default:disabled {
+  background: #ccc !important;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+  .create-store-header h1 {
+    font-size: 24px;
+  }
+
+  .create-store-form {
+    padding: 24px 16px;
+  }
+
+  .inn-search {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .inn-search .dx-button {
+    width: 100%;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .form-actions {
+    flex-direction: column-reverse;
+  }
+
+  .form-actions .dx-button {
+    width: 100%;
+  }
+}
