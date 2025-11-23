@@ -105,6 +105,24 @@ export const useCartStore = create<CartState>((set, get) => ({
         await cartApi.addToCart(productId, quantity)
         await get().fetchCart()
       } catch (error: any) {
+        // Если 401 - токен невалидный, переключаемся на гостевую корзину
+        if (error.response?.status === 401) {
+          set({ cart: null, isLoading: false })
+          // Добавляем в гостевую корзину
+          const guestCart = getGuestCart()
+          const existingItem = guestCart.items.find(item => item.product_id === productId)
+          
+          if (existingItem) {
+            existingItem.quantity += quantity
+          } else {
+            guestCart.items.push({ product_id: productId, quantity, product })
+          }
+          
+          saveGuestCart(guestCart)
+          set({ guestCart })
+          return
+        }
+        
         set({ 
           error: error.response?.data?.detail || 'Ошибка добавления в корзину',
           isLoading: false 
