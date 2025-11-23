@@ -2,7 +2,7 @@
 Store Products Router - управление товарами магазина
 """
 from typing import List, Optional
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Header
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, and_
 from database import get_db
@@ -16,7 +16,7 @@ router = APIRouter(prefix="/api/my-stores", tags=["store-products"])
 
 
 async def get_current_user(
-    authorization: str = None,
+    authorization: Optional[str] = Header(None),
     db: AsyncSession = Depends(get_db)
 ) -> User:
     """Получить текущего пользователя из токена"""
