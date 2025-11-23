@@ -33,6 +33,7 @@ const ratingOptions = [
 export default function FilterPanel() {
   const {
     category_id,
+    store_id,
     min_price,
     max_price,
     min_rating,
@@ -47,6 +48,14 @@ export default function FilterPanel() {
   const { data: categories = [], isLoading: categoriesLoading } = useQuery({
     queryKey: ['categories'],
     queryFn: categoriesApi.getCategories,
+  })
+
+  const { data: stores = [], isLoading: storesLoading } = useQuery({
+    queryKey: ['stores'],
+    queryFn: async () => {
+      const response = await fetch('http://localhost:8000/api/my-stores')
+      return response.json()
+    },
   })
 
   const activeFiltersCount = getActiveFiltersCount()
@@ -103,6 +112,34 @@ export default function FilterPanel() {
                 </div>
               )
             }}
+          />
+        </div>
+
+        {/* Магазин */}
+        <div className="filter-section">
+          <label className="filter-label">
+            Магазин {storesLoading && '(загрузка...)'} 
+          </label>
+          <SelectBox
+            value={store_id || null}
+            onValueChanged={(e) => {
+              setFilter('store_id', e.value)
+              setFilter('skip', 0)
+            }}
+            dataSource={[
+              { id: null, name: 'Все магазины' },
+              ...stores
+            ]}
+            displayExpr="name"
+            valueExpr="id"
+            placeholder="Выберите магазин"
+            showClearButton={true}
+            disabled={storesLoading}
+            searchEnabled={true}
+            searchMode="contains"
+            searchExpr="name"
+            minSearchLength={0}
+            width="100%"
           />
         </div>
 
