@@ -72,8 +72,8 @@ export default function Header() {
           <Link to="/catalog" className="header__nav-link">
             Каталог
           </Link>
-          <Link to="/stores" className="header__nav-link">
-            Магазины
+          <Link to="/map" className="header__nav-link">
+            Карта
           </Link>
           <Link to="/about" className="header__nav-link">
             О нас

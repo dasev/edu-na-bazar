@@ -7,3 +7,8 @@
 .main-content {
   flex: 1;
 }
+
+/* Мгновенно скрываем панель DevExpress до клика по кнопке */
+dx-license {
+  display: none !important;
+}

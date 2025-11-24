@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { Button } from 'devextreme-react/button'
-import { useMemo, useEffect } from 'react'
+import { useMemo, useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import ProductCard from '../../components/ProductCard/ProductCard'
 import FilterPanel from '../../components/FilterPanel/FilterPanel'
@@ -12,6 +12,8 @@ import './CatalogPage.css'
 export default function CatalogPage() {
   const filtersStore = useFiltersStore()
   const [searchParams] = useSearchParams()
+  const [allProducts, setAllProducts] = useState<any[]>([])
+  const [isFirstLoad, setIsFirstLoad] = useState(true)
   
   // Применяем фильтр по магазину из URL
   useEffect(() => {
@@ -54,8 +56,42 @@ export default function CatalogPage() {
     queryFn: () => productsApi.getProducts(filters),
   })
   
-  const products = productsData?.data || []
   const meta = productsData?.meta
+  
+  // Накапливаем товары при загрузке новых или сбрасываем при изменении фильтров
+  useEffect(() => {
+    if (productsData?.data) {
+      const skip = filters.skip || 0
+      if (skip === 0) {
+        // Сброс фильтров - показываем только новые товары
+        setAllProducts(productsData.data)
+      } else {
+        // Добавляем к существующим
+        setAllProducts(prev => [...prev, ...productsData.data])
+      }
+    }
+  }, [productsData, filters.skip])
+  
+  // Сбрасываем товары при изменении любых фильтров кроме skip
+  useEffect(() => {
+    if (isFirstLoad) {
+      setIsFirstLoad(false)
+      return
+    }
+    filtersStore.setFilter('skip', 0)
+    setAllProducts([])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    filters.category_id,
+    filters.store_id,
+    filters.min_price,
+    filters.max_price,
+    filters.min_rating,
+    filters.in_stock,
+    filters.search,
+    filters.sort_by,
+    filters.sort_order,
+  ])
   
   const handleLoadMore = () => {
     const skip = filters.skip || 0
@@ -83,18 +119,18 @@ export default function CatalogPage() {
             <div className="catalog-page__toolbar">
               <span>
                 Найдено: {meta?.total || 0} товаров
-                {products.length > 0 && (
+                {allProducts.length > 0 && (
                   <span className="catalog-page__showing">
-                    {' '}(показано {skip + 1}-{Math.min(skip + limit, meta?.total || 0)})
+                    {' '}(показано {allProducts.length})
                   </span>
                 )}
               </span>
               {isLoading && <span style={{ marginLeft: '10px', color: '#667eea' }}>⏳ Загрузка...</span>}
             </div>
             
-            {isLoading ? (
+            {isLoading && allProducts.length === 0 ? (
               <ProductCardSkeletonGrid count={8} />
-            ) : products.length === 0 ? (
+            ) : allProducts.length === 0 ? (
               <div className="catalog-page__empty">
                 <h3>Товары не найдены</h3>
                 <p>Попробуйте изменить фильтры</p>
@@ -102,7 +138,7 @@ export default function CatalogPage() {
             ) : (
               <>
                 <div className="catalog-page__grid">
-                  {products.map((product: any) => (
+                  {allProducts.map((product: any) => (
                     <ProductCard key={product.id} product={product} />
                   ))}
                 </div>
@@ -110,10 +146,11 @@ export default function CatalogPage() {
                 {hasMore && (
                   <div className="catalog-page__load-more">
                     <Button
-                      text="Показать еще"
+                      text={isLoading ? "Загрузка..." : "Показать еще"}
                       type="default"
                       stylingMode="outlined"
                       onClick={handleLoadMore}
+                      disabled={isLoading}
                       width={200}
                     />
                   </div>

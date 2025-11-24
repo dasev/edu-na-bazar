@@ -13,15 +13,27 @@ export const apiClient = axios.create({
   },
 })
 
+// Публичные endpoint'ы которые не требуют авторизации
+const PUBLIC_ENDPOINTS = [
+  '/api/categories',
+  '/api/products',
+  '/api/stores',
+  '/api/store-owners',
+  '/api/auth/login',
+  '/api/auth/send-code',
+  '/api/auth/verify-code',
+]
+
 // Interceptor для добавления токена авторизации
 apiClient.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('auth_token')
+    const isPublicEndpoint = PUBLIC_ENDPOINTS.some(endpoint => config.url?.startsWith(endpoint))
+    
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
-      console.log('🔐 Токен добавлен в запрос:', config.url)
-    } else {
-      console.warn('⚠️ Токен отсутствует для запроса:', config.url)
+    } else if (!isPublicEndpoint) {
+      console.warn('⚠️ Токен отсутствует для защищённого запроса:', config.url)
     }
     return config
   },

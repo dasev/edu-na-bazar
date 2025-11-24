@@ -14,7 +14,7 @@
   padding: 16px 24px;
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 8px;
 }
 
 .ozon-header__logo {
@@ -37,7 +37,7 @@
   color: #1a1a1a;
   font-size: 15px;
   font-weight: 600;
-  padding: 8px 16px;
+  padding: 8px 12px;
   border-radius: 12px;
   transition: all 0.3s;
   white-space: nowrap;
@@ -49,10 +49,11 @@
 }
 
 .ozon-header__search {
-  flex: 1;
+  flex: 2;
   display: flex;
   gap: 8px;
   align-items: center;
+  max-width: 600px;
 }
 
 .ozon-header__search .dx-textbox {

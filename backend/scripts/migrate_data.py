@@ -16,8 +16,9 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 # Настройки подключения
 MYSQL_CONFIG = {
     'host': 'localhost',
+    'port': 3306,  # Стандартный порт MariaDB
     'user': 'root',
-    'password': '',  # Пустой пароль
+    'password': 'root',  # Измените если у вас другой пароль
     'database': 'enb',
     'charset': 'utf8mb4',
     'cursorclass': pymysql.cursors.DictCursor

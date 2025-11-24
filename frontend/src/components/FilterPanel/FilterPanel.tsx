@@ -10,18 +10,6 @@ import { categoriesApi } from '../../api'
 import { useFiltersStore } from '../../store/filtersStore'
 import './FilterPanel.css'
 
-const sortOptions = [
-  { id: 'created_at', name: 'По новизне' },
-  { id: 'price', name: 'По цене' },
-  { id: 'rating', name: 'По рейтингу' },
-  { id: 'name', name: 'По названию' },
-]
-
-const sortOrderOptions = [
-  { id: 'desc', name: 'По убыванию' },
-  { id: 'asc', name: 'По возрастанию' },
-]
-
 const ratingOptions = [
   { id: 0, name: 'Любой' },
   { id: 4.5, name: '4.5 и выше' },
@@ -38,8 +26,6 @@ export default function FilterPanel() {
     max_price,
     min_rating,
     in_stock,
-    sort_by,
-    sort_order,
     setFilter,
     resetFilters,
     getActiveFiltersCount,
@@ -93,8 +79,7 @@ export default function FilterPanel() {
         {/* Категория */}
         <div className="filter-section">
           <label className="filter-label">
-            Категория {categoriesLoading && '(загрузка...)'} 
-            {!categoriesLoading && ` (${categoriesWithAll.length} шт.)`}
+            Категория {categoriesLoading && '(загрузка...)'}
           </label>
           <SelectBox
             dataSource={categoriesWithAll}
@@ -212,38 +197,6 @@ export default function FilterPanel() {
               setFilter('in_stock', e.value ? true : undefined)
               setFilter('skip', 0) // Сбрасываем пагинацию
             }}
-          />
-        </div>
-
-        {/* Сортировка */}
-        <div className="filter-section">
-          <label className="filter-label">Сортировка</label>
-          <SelectBox
-            dataSource={sortOptions}
-            value={sort_by}
-            onValueChanged={(e) => {
-              setFilter('sort_by', e.value)
-              setFilter('skip', 0) // Сбрасываем пагинацию
-            }}
-            displayExpr="name"
-            valueExpr="id"
-            width="100%"
-          />
-        </div>
-
-        {/* Порядок сортировки */}
-        <div className="filter-section">
-          <label className="filter-label">Порядок</label>
-          <SelectBox
-            dataSource={sortOrderOptions}
-            value={sort_order}
-            onValueChanged={(e) => {
-              setFilter('sort_order', e.value)
-              setFilter('skip', 0) // Сбрасываем пагинацию
-            }}
-            displayExpr="name"
-            valueExpr="id"
-            width="100%"
           />
         </div>
       </div>

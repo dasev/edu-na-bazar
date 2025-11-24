@@ -26,14 +26,18 @@ export default function HomePage() {
           <h1>🛒 Еду на базар</h1>
           <p className="hero__subtitle">Маркетплейс фермерских хозяйств</p>
           <p className="hero__description">Покупайте свежие продукты напрямую у производителей без посредников</p>
-          <Link to="/catalog" className="hero__button">
-            Перейти в каталог
-          </Link>
+          <div className="hero__buttons">
+            <Link to="/catalog" className="hero__button">
+              Перейти в каталог
+            </Link>
+            <Link to="/map" className="hero__button hero__button--secondary">
+              На карту
+            </Link>
+          </div>
         </section>
 
         {/* Categories */}
         <section className="categories">
-          <h2>Категории товаров</h2>
           <div className="categories__grid">
             {categories?.map((category: any) => (
               <div

@@ -31,7 +31,8 @@ class User(Base):
     last_login = Column(DateTime, nullable=True, index=True)
     
     # Relationships
-    reviews = relationship("Review", back_populates="user")
+    product_reviews = relationship("ProductReview", back_populates="user")
+    product_questions = relationship("ProductQuestion", back_populates="user")
     sent_messages = relationship("Message", foreign_keys="Message.from_user_id", back_populates="from_user")
     received_messages = relationship("Message", foreign_keys="Message.to_user_id", back_populates="to_user")
     

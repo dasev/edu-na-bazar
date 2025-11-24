@@ -4,6 +4,7 @@ Product model
 from datetime import datetime
 from sqlalchemy import Column, DateTime, Boolean, BigInteger, ForeignKey, Text, ARRAY, Double
 from sqlalchemy.orm import relationship
+from geoalchemy2 import Geometry
 from database import Base
 
 # Forward reference для избежания циклического импорта
@@ -50,6 +51,11 @@ class Product(Base):
     location = Column(Text, nullable=True)  # Адрес/местоположение товара
     status = Column(Text, default="active")  # active, archived, moderation
     
+    # Геолокация (PostGIS)
+    latitude = Column(Double, nullable=True)  # Широта
+    longitude = Column(Double, nullable=True)  # Долгота
+    geo_location = Column(Geometry('POINT', srid=4326), nullable=True)  # Точка на карте
+    
     # Timestamps
     created_at = Column(DateTime, default=datetime.utcnow, index=True)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -60,7 +66,8 @@ class Product(Base):
     images = relationship("ProductImage", back_populates="product", cascade="all, delete-orphan", lazy="selectin")
     cart_items = relationship("CartItem", back_populates="product")
     order_items = relationship("OrderItem", back_populates="product")
-    reviews = relationship("Review", back_populates="product", cascade="all, delete-orphan")
+    product_reviews = relationship("ProductReview", back_populates="product", cascade="all, delete-orphan", lazy="noload")
+    product_questions = relationship("ProductQuestion", back_populates="product", cascade="all, delete-orphan", lazy="noload")
     messages = relationship("Message", back_populates="product")
     
     def __repr__(self):

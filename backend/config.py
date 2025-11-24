@@ -28,6 +28,10 @@ class Settings:
     ALLOWED_ORIGINS: list = [
         "http://localhost:3000",
         "http://localhost:3001",
+        "http://127.0.0.1:3000",
+        "http://127.0.0.1:3001",
+        "http://127.0.0.1:52711",  # Cascade browser preview
+        "*",  # Разрешить все для разработки
     ]
     
     # Mapbox

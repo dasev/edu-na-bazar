@@ -11,7 +11,7 @@ export default function StoresPage() {
   const { data: stores = [], isLoading } = useQuery({
     queryKey: ['stores'],
     queryFn: async () => {
-      const response = await apiClient.get('/api/my-stores')
+      const response = await apiClient.get('/api/stores')
       return response.data
     },
   })

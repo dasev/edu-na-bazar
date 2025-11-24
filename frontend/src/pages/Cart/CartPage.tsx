@@ -10,6 +10,9 @@ import { useAuthStore } from '../../store/authStore'
 import { showToast } from '../../utils/toast'
 import './CartPage.css'
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+const NO_IMAGE = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100"%3E%3Crect fill="%23ddd" width="100" height="100"/%3E%3Ctext fill="%23999" x="50%25" y="50%25" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="12"%3EНет фото%3C/text%3E%3C/svg%3E'
+
 export default function CartPage() {
   const navigate = useNavigate()
   const { isAuthenticated } = useAuthStore()
@@ -107,15 +110,15 @@ export default function CartPage() {
               if (cart) {
                 return (
                   <div key={item.id} className="cart-item">
-                    <div className="cart-item__image">
+                    <div className="cart-item__image" onClick={() => navigate(`/product/${item.product_id}`)} style={{ cursor: 'pointer' }}>
                       <img
-                        src={item.product_image || 'https://via.placeholder.com/100'}
+                        src={item.product_image ? (item.product_image.startsWith('http') ? item.product_image : `${API_URL}${item.product_image}`) : NO_IMAGE}
                         alt={item.product_name}
                       />
                     </div>
 
                     <div className="cart-item__info">
-                      <h3 className="cart-item__name">{item.product_name}</h3>
+                      <h3 className="cart-item__name" onClick={() => navigate(`/product/${item.product_id}`)} style={{ cursor: 'pointer' }}>{item.product_name}</h3>
                       <div className="cart-item__price">
                         {item.product_price.toFixed(2)} ₽
                       </div>
@@ -156,15 +159,15 @@ export default function CartPage() {
               // Для гостевой корзины
               return (
                 <div key={item.product_id} className="cart-item">
-                  <div className="cart-item__image">
+                  <div className="cart-item__image" onClick={() => navigate(`/product/${item.product_id}`)} style={{ cursor: 'pointer' }}>
                     <img
-                      src={item.product?.image || 'https://via.placeholder.com/100'}
+                      src={item.product?.image ? (item.product.image.startsWith('http') ? item.product.image : `${API_URL}${item.product.image}`) : NO_IMAGE}
                       alt={item.product?.name || 'Товар'}
                     />
                   </div>
 
                   <div className="cart-item__info">
-                    <h3 className="cart-item__name">{item.product?.name || 'Товар'}</h3>
+                    <h3 className="cart-item__name" onClick={() => navigate(`/product/${item.product_id}`)} style={{ cursor: 'pointer' }}>{item.product?.name || 'Товар'}</h3>
                     <div className="cart-item__price">
                       {Number(item.product?.price || 0).toFixed(2)} ₽
                     </div>

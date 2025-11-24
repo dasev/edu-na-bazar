@@ -38,6 +38,17 @@ class ProductUpdate(BaseModel):
 
 
 # Response schemas
+class ProductImageSchema(BaseModel):
+    """Схема изображения товара"""
+    id: int
+    image_url: str
+    is_main: bool = False
+    sort_order: int = 0
+    
+    class Config:
+        from_attributes = True
+
+
 class ProductResponse(BaseModel):
     """Схема ответа с товаром"""
     id: int
@@ -52,6 +63,9 @@ class ProductResponse(BaseModel):
     unit: str
     created_at: datetime
     updated_at: datetime
+    images: List[ProductImageSchema] = []  # Все изображения товара
+    latitude: Optional[float] = None  # Широта для карты
+    longitude: Optional[float] = None  # Долгота для карты
     
     class Config:
         from_attributes = True

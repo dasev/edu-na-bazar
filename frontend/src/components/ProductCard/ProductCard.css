@@ -40,6 +40,32 @@
   border-radius: 6px;
   font-size: 13px;
   font-weight: 600;
+  z-index: 2;
+}
+
+/* Индикаторы изображений */
+.product-card__image-indicators {
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 4px;
+  z-index: 2;
+}
+
+.product-card__image-indicators .indicator {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.5);
+  transition: all 0.2s;
+}
+
+.product-card__image-indicators .indicator.active {
+  background: white;
+  width: 20px;
+  border-radius: 3px;
 }
 
 .product-card__price {

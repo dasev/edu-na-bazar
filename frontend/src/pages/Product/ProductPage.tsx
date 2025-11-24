@@ -11,7 +11,10 @@ import 'react-loading-skeleton/dist/skeleton.css'
 import { productsApi } from '../../api'
 import { useCartStore } from '../../store/cartStore'
 import { showToast } from '../../utils/toast'
+import ProductReviews from '../../components/ProductReviews/ProductReviews'
 import './ProductPage.css'
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
 
 export default function ProductPage() {
   const { id } = useParams<{ id: string }>()
@@ -19,6 +22,8 @@ export default function ProductPage() {
   const { addToCart } = useCartStore()
   const [quantity, setQuantity] = useState(1)
   const [adding, setAdding] = useState(false)
+  const [selectedImage, setSelectedImage] = useState<string | null>(null)
+  const [isImageModalOpen, setIsImageModalOpen] = useState(false)
 
   const { data: product, isLoading, error } = useQuery({
     queryKey: ['product', id],
@@ -80,6 +85,18 @@ export default function ProductPage() {
     ? Math.round(((product.old_price - product.price) / product.old_price) * 100)
     : 0
 
+  // Формируем список всех изображений
+  // Если есть images - используем только их, иначе берём product.image
+  const allImages = product.images && product.images.length > 0
+    ? product.images.map((img: any) => img.image_url).filter((url: string) => url)
+    : (product.image ? [product.image] : [])
+
+  // Текущее изображение
+  const currentImage = selectedImage || allImages[0] || null
+  const imageUrl = currentImage
+    ? (currentImage.startsWith('http') ? currentImage : `${API_URL}${currentImage}`)
+    : 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="500" height="500"%3E%3Crect fill="%23ddd" width="500" height="500"/%3E%3Ctext fill="%23999" x="50%25" y="50%25" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="24"%3EНет фото%3C/text%3E%3C/svg%3E'
+
   return (
     <div className="product-page">
       <div className="product-page__container">
@@ -93,22 +110,50 @@ export default function ProductPage() {
         </div>
 
         <div className="product-page__content">
-          {/* Изображение */}
+          {/* Галерея изображений */}
           <div className="product-page__images">
-            <div className="product-page__main-image">
-              <img
-                src={product.image || 'https://via.placeholder.com/500'}
-                alt={product.name}
-              />
-            </div>
-            {product.images && product.images.length > 0 && (
+            {allImages.length > 1 && (
               <div className="product-page__thumbnails">
-                {product.images.map((img, index) => (
-                  <img key={index} src={img} alt={`${product.name} ${index + 1}`} />
-                ))}
+                {allImages.map((img, index) => {
+                  const thumbUrl = img.startsWith('http') ? img : `${API_URL}${img}`
+                  return (
+                    <div
+                      key={index}
+                      className={`thumbnail ${currentImage === img ? 'active' : ''}`}
+                      onClick={() => setSelectedImage(img)}
+                    >
+                      <img src={thumbUrl} alt={`${product.name} ${index + 1}`} />
+                    </div>
+                  )
+                })}
               </div>
             )}
+            <div 
+              className="product-page__main-image"
+              onClick={() => setIsImageModalOpen(true)}
+              style={{ cursor: 'zoom-in' }}
+            >
+              <img src={imageUrl} alt={product.name} />
+            </div>
           </div>
+
+          {/* Модальное окно с увеличенным изображением */}
+          {isImageModalOpen && (
+            <div 
+              className="image-modal"
+              onClick={() => setIsImageModalOpen(false)}
+            >
+              <div className="image-modal__content">
+                <button 
+                  className="image-modal__close"
+                  onClick={() => setIsImageModalOpen(false)}
+                >
+                  ✕
+                </button>
+                <img src={imageUrl} alt={product.name} />
+              </div>
+            </div>
+          )}
 
           {/* Информация */}
           <div className="product-page__info">
@@ -159,14 +204,33 @@ export default function ProductPage() {
                     width={120}
                   />
                 </div>
-                <Button
-                  text={adding ? 'Добавление...' : 'Добавить в корзину'}
-                  type="default"
-                  stylingMode="contained"
-                  disabled={adding}
-                  onClick={handleAddToCart}
-                  width={200}
-                />
+                <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                  <Button
+                    text={adding ? 'Добавление...' : 'Добавить в корзину'}
+                    type="default"
+                    stylingMode="contained"
+                    disabled={adding}
+                    onClick={handleAddToCart}
+                    width={200}
+                  />
+                  {product.latitude && product.longitude && (
+                    <Button
+                      icon="map"
+                      type="default"
+                      stylingMode="contained"
+                      hint="Показать на карте"
+                      onClick={() => {
+                        localStorage.setItem('mapFocusProduct', JSON.stringify({
+                          id: product.id,
+                          lat: product.latitude,
+                          lng: product.longitude
+                        }))
+                        window.location.href = '/map'
+                      }}
+                      width={48}
+                    />
+                  )}
+                </div>
               </div>
             )}
 
@@ -178,6 +242,11 @@ export default function ProductPage() {
               </div>
             )}
           </div>
+        </div>
+
+        {/* Отзывы и вопросы */}
+        <div className="product-page__container">
+          <ProductReviews productId={parseInt(id!)} />
         </div>
       </div>
     </div>

@@ -26,6 +26,7 @@ async def get_products(
     min_price: Optional[float] = Query(None),
     max_price: Optional[float] = Query(None),
     in_stock: Optional[bool] = Query(None),
+    with_images: Optional[bool] = Query(None),
     search: Optional[str] = Query(None),
     sort_by: str = Query("created_at"),
     sort_order: str = Query("desc"),
@@ -65,6 +66,10 @@ async def get_products(
     
     if in_stock is not None:
         query = query.where(Product.in_stock == in_stock)
+    
+    if with_images is not None and with_images:
+        query = query.where(Product.image.isnot(None))
+        query = query.where(Product.image != '')
     
     if search:
         search_pattern = f"%{search}%"
@@ -108,9 +113,14 @@ async def get_products(
 
 @router.get("/{product_id}", response_model=ProductResponse)
 async def get_product(product_id: int, db: AsyncSession = Depends(get_db)):
-    """Получить товар по ID"""
+    """Получить товар по ID с изображениями"""
+    from models.product_image import ProductImage
+    from sqlalchemy.orm import selectinload
+    
     result = await db.execute(
-        select(Product).where(Product.id == product_id)
+        select(Product)
+        .options(selectinload(Product.images))
+        .where(Product.id == product_id)
     )
     product = result.scalar_one_or_none()
     
@@ -182,3 +192,94 @@ async def delete_product(product_id: int, db: AsyncSession = Depends(get_db)):
     await db.commit()
     
     return None
+
+
+@router.get("/map/geojson")
+async def get_products_geojson(
+    category_id: Optional[int] = Query(None),
+    store_id: Optional[int] = Query(None),
+    min_price: Optional[float] = Query(None),
+    max_price: Optional[float] = Query(None),
+    min_rating: Optional[float] = Query(None),
+    in_stock: Optional[bool] = Query(None),
+    limit: int = Query(1000, ge=1, le=5000),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Получить товары в формате GeoJSON для отображения на карте
+    
+    Возвращает только товары с координатами
+    """
+    from sqlalchemy.orm import selectinload
+    from models.category import Category
+    
+    # Базовый запрос - только товары с координатами
+    query = select(Product).options(selectinload(Product.category))
+    query = query.where(Product.latitude.isnot(None))
+    query = query.where(Product.longitude.isnot(None))
+    
+    # Фильтры
+    if category_id:
+        query = query.where(Product.category_id == category_id)
+    
+    if store_id:
+        query = query.where(Product.store_owner_id == store_id)
+    
+    if min_price is not None:
+        query = query.where(Product.price >= min_price)
+    
+    if max_price is not None:
+        query = query.where(Product.price <= max_price)
+    
+    if min_rating is not None:
+        query = query.where(Product.rating >= min_rating)
+    
+    if in_stock is not None:
+        query = query.where(Product.in_stock == in_stock)
+    
+    # Ограничение
+    query = query.limit(limit)
+    
+    # Выполнение запроса
+    result = await db.execute(query)
+    products = result.scalars().all()
+    
+    # Формируем GeoJSON
+    features = []
+    for product in products:
+        # Собираем все изображения товара
+        images = []
+        if product.image:
+            images.append(product.image)
+        # Добавляем дополнительные изображения из связанной таблицы
+        if hasattr(product, 'images') and product.images:
+            for img in product.images:
+                if img.image_url and img.image_url not in images:
+                    images.append(img.image_url)
+        
+        import json
+        
+        features.append({
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [product.longitude, product.latitude]
+            },
+            "properties": {
+                "id": product.id,
+                "name": product.name,
+                "price": float(product.price),
+                "image": product.image,
+                "images": json.dumps(images),  # Сериализуем в JSON строку
+                "category_id": product.category_id,
+                "category_name": product.category.name if product.category else None,
+                "category_icon": product.category.image if product.category else "📦",
+                "in_stock": product.in_stock,
+                "rating": float(product.rating) if product.rating else 0,
+            }
+        })
+    
+    return {
+        "type": "FeatureCollection",
+        "features": features
+    }
