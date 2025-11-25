@@ -15,10 +15,10 @@ RUN npm ci --silent
 COPY . .
 
 # Build аргументы
-ARG REACT_APP_API_URL=http://localhost:8000
-ARG REACT_APP_MAPBOX_TOKEN
-ENV REACT_APP_API_URL=$REACT_APP_API_URL
-ENV REACT_APP_MAPBOX_TOKEN=$REACT_APP_MAPBOX_TOKEN
+ARG VITE_API_URL=http://localhost:8000
+ARG VITE_MAPBOX_TOKEN
+ENV VITE_API_URL=$VITE_API_URL
+ENV VITE_MAPBOX_TOKEN=$VITE_MAPBOX_TOKEN
 
 # Build production
 RUN npm run build
@@ -29,8 +29,8 @@ FROM nginx:alpine
 # Установка curl для health check
 RUN apk add --no-cache curl
 
-# Копирование build
-COPY --from=builder /app/build /usr/share/nginx/html
+# Копирование build (Vite использует dist, не build)
+COPY --from=builder /app/dist /usr/share/nginx/html
 
 # Nginx конфигурация
 COPY nginx.conf /etc/nginx/conf.d/default.conf

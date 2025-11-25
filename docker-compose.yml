@@ -78,8 +78,8 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
       args:
-        REACT_APP_API_URL: ${REACT_APP_API_URL:-http://localhost:8000}
-        REACT_APP_MAPBOX_TOKEN: ${REACT_APP_MAPBOX_TOKEN:-}
+        VITE_API_URL: ${REACT_APP_API_URL:-http://localhost:8000}
+        VITE_MAPBOX_TOKEN: ${VITE_MAPBOX_TOKEN:-}
     container_name: edu-na-bazar-frontend
     ports:
       - "80:80"
