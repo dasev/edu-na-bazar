@@ -634,7 +634,7 @@ export default function MapPage() {
                     </div>
                   `
                   
-                  const focusPopup = new mapboxgl.Popup({ 
+                  new mapboxgl.Popup({ 
                     offset: 25,
                     maxWidth: '320px',
                     closeButton: true,
