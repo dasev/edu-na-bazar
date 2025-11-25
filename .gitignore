@@ -58,3 +58,16 @@ Thumbs.db
 
 # Docker
 docker-compose.override.yml
+
+# Uploads (large files)
+backend/uploads/products/original/*.jpg
+backend/uploads/products/thumbnails/*.jpg
+backend/uploads/products/optimized/*.jpg
+backend/uploads/stores/*.jpg
+backend/uploads/categories/*.jpg
+
+# Database dumps
+*.sql
+*.backup
+dump*.sql
+1.sql

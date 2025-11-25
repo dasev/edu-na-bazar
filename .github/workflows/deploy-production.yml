@@ -1,0 +1,58 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to production server
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.PROD_HOST }}
+          username: ${{ secrets.PROD_USER }}
+          password: ${{ secrets.PROD_PASSWORD }}
+          script: |
+            cd /opt/edu-na-bazar
+            
+            # Остановить контейнеры
+            docker-compose down
+            
+            # Обновить код
+            git pull origin main
+            
+            # Пересобрать образы
+            docker-compose build --no-cache
+            
+            # Запустить контейнеры
+            docker-compose up -d
+            
+            # Подождать запуска
+            sleep 15
+            
+            # Проверить статус
+            docker-compose ps
+            
+            # Проверить логи backend
+            docker-compose logs backend --tail=50
+            
+            # Проверить API
+            curl -f http://localhost:8000/api/categories/ || exit 1
+            
+            echo "✅ Deployment successful!"
+
+      - name: Notify on success
+        if: success()
+        run: echo "🎉 Production deployment completed successfully!"
+
+      - name: Notify on failure
+        if: failure()
+        run: echo "❌ Production deployment failed!"

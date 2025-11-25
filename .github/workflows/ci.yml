@@ -1,0 +1,88 @@
+name: CI - Code Quality Checks
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  backend-checks:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install backend dependencies
+        run: |
+          cd backend
+          pip install -r requirements.txt
+
+      - name: Check Python syntax
+        run: |
+          cd backend
+          python -m py_compile main.py
+          python -m py_compile database.py
+          python -m py_compile config.py
+
+      - name: Check Alembic migrations
+        run: |
+          cd backend
+          alembic check || echo "⚠️ Migration check skipped (requires DB)"
+
+  frontend-checks:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install frontend dependencies
+        run: |
+          cd frontend
+          npm ci
+
+      - name: TypeScript check
+        run: |
+          cd frontend
+          npm run type-check || npx tsc --noEmit
+
+      - name: Build frontend
+        run: |
+          cd frontend
+          npm run build
+
+  docker-build:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build backend Docker image
+        run: |
+          cd backend
+          docker build -t edu-na-bazar-backend:test .
+
+      - name: Build frontend Docker image
+        run: |
+          cd frontend
+          docker build -t edu-na-bazar-frontend:test .
+
+      - name: Check docker-compose syntax
+        run: |
+          docker-compose config

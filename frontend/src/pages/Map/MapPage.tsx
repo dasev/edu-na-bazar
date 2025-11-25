@@ -14,6 +14,8 @@ import FilterPanel from '../../components/FilterPanel/FilterPanel'
 // Токен Mapbox
 mapboxgl.accessToken = 'pk.eyJ1Ijoic2VyZ2VqZGFuNDUyIiwiYSI6ImNtaTd0dzQ4ajA0bHkyanIyNWJwa2JrNXYifQ.AWJBOIEEXVb-6AIKrbRXmw'
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+
 export default function MapPage() {
   const mapContainer = useRef<HTMLDivElement>(null)
   const map = useRef<mapboxgl.Map | null>(null)
@@ -98,7 +100,7 @@ export default function MapPage() {
           if (filters.in_stock !== undefined) params.append('in_stock', filters.in_stock.toString())
           params.append('limit', '5000') // Загружаем больше товаров для карты
           
-          const response = await axios.get(`http://localhost:8000/api/products/map/geojson?${params.toString()}`)
+          const response = await axios.get(`${API_URL}/api/products/map/geojson?${params.toString()}`)
           const geojson = response.data
           
           console.log('✅ Загружено товаров:', geojson.features.length)
@@ -306,7 +308,7 @@ export default function MapPage() {
                     style="position: relative; width: 100%; height: 150px; border-radius: 12px; overflow: hidden; margin-bottom: 12px; cursor: zoom-in;"
                   >
                     <img 
-                      src="http://localhost:8000${images[0]}" 
+                      src="${API_URL}${images[0]}" 
                       class="popup-main-image"
                       style="width: 100%; height: 100%; object-fit: cover;" 
                     />
@@ -470,7 +472,7 @@ export default function MapPage() {
                       currentIndex = newIndex
                       
                       // Меняем изображение
-                      img.src = `http://localhost:8000${imagesData[currentIndex]}`
+                      img.src = `${API_URL}${imagesData[currentIndex]}`
                       
                       // Обновляем точки
                       dots.forEach((dot, idx) => {
@@ -494,7 +496,7 @@ export default function MapPage() {
                   // Сброс при выходе мыши
                   container.addEventListener('mouseleave', () => {
                     currentIndex = 0
-                    img.src = `http://localhost:8000${imagesData[0]}`
+                    img.src = `${API_URL}${imagesData[0]}`
                     dots.forEach((dot, idx) => {
                       const dotEl = dot as HTMLElement
                       if (idx === 0) {
@@ -591,7 +593,7 @@ export default function MapPage() {
                           style="position: relative; width: 100%; height: 150px; border-radius: 12px; overflow: hidden; margin-bottom: 12px; cursor: zoom-in;"
                         >
                           <img 
-                            src="http://localhost:8000${images[0]}" 
+                            src="${API_URL}${images[0]}" 
                             class="popup-main-image"
                             style="width: 100%; height: 100%; object-fit: cover;" 
                           />
@@ -746,7 +748,7 @@ export default function MapPage() {
                           
                           if (newIndex !== currentIndex && newIndex >= 0 && newIndex < imagesData.length) {
                             currentIndex = newIndex
-                            img.src = `http://localhost:8000${imagesData[currentIndex]}`
+                            img.src = `${API_URL}${imagesData[currentIndex]}`
                             if (counter) counter.textContent = (currentIndex + 1).toString()
                             
                             dots.forEach((dot, idx) => {
@@ -761,7 +763,7 @@ export default function MapPage() {
                         
                         container.addEventListener('mouseleave', () => {
                           currentIndex = 0
-                          img.src = `http://localhost:8000${imagesData[0]}`
+                          img.src = `${API_URL}${imagesData[0]}`
                           if (counter) counter.textContent = '1'
                           
                           dots.forEach((dot, idx) => {
@@ -864,7 +866,7 @@ export default function MapPage() {
         if (filters.in_stock !== undefined) params.append('in_stock', filters.in_stock.toString())
         params.append('limit', '5000')
         
-        const response = await axios.get(`http://localhost:8000/api/products/map/geojson?${params.toString()}`)
+        const response = await axios.get(`${API_URL}/api/products/map/geojson?${params.toString()}`)
         const geojson = response.data
         
         console.log('✅ Обновлено товаров:', geojson.features.length)

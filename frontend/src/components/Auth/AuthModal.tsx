@@ -5,7 +5,7 @@ import { Button } from 'devextreme-react/button'
 import axios from 'axios'
 import './AuthModal.css'
 
-const API_URL = 'http://localhost:8000'
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
 
 interface AuthModalProps {
   visible: boolean

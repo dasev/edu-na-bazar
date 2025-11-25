@@ -41,7 +41,8 @@ export default function FilterPanel() {
     queryFn: async () => {
       try {
         // Получаем все магазины через публичный endpoint
-        const response = await fetch('http://localhost:8000/api/store-owners/all')
+        const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+        const response = await fetch(`${API_URL}/api/store-owners/all`)
         if (!response.ok) {
           return []
         }

@@ -80,7 +80,8 @@ export default function ImageUpload({
         formData.append('files', file)
       })
 
-      const response = await fetch('http://localhost:8000/api/images/upload-multiple', {
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+      const response = await fetch(`${API_URL}/api/images/upload-multiple`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -100,7 +101,7 @@ export default function ImageUpload({
         
         // Обновляем превью на реальные URL
         const realUrls = result.data.map((img: UploadedImage) => 
-          `http://localhost:8000${img.thumbnail_url || img.optimized_url || img.original_url}`
+          `${API_URL}${img.thumbnail_url || img.optimized_url || img.original_url}`
         )
         setPreview(() => {
           // Удаляем временные blob URL
