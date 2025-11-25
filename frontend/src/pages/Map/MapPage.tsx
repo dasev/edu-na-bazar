@@ -39,10 +39,34 @@ export default function MapPage() {
     console.log('📏 Размеры:', mapContainer.current.offsetWidth, 'x', mapContainer.current.offsetHeight)
 
     try {
-      // Создаем карту
+      // Создаем карту с Google Maps подложкой
       const mapInstance = new mapboxgl.Map({
         container: mapContainer.current,
-        style: 'mapbox://styles/mapbox/streets-v12', // Используем стандартный стиль Mapbox
+        style: {
+          version: 8,
+          sources: {
+            'google-tiles': {
+              type: 'raster',
+              tiles: [
+                'https://mt0.google.com/maps/vt?lyrs=m@189&gl=cn&x={x}&y={y}&z={z}',
+                'https://mt1.google.com/maps/vt?lyrs=m@189&gl=cn&x={x}&y={y}&z={z}',
+                'https://mt2.google.com/maps/vt?lyrs=m@189&gl=cn&x={x}&y={y}&z={z}',
+                'https://mt3.google.com/maps/vt?lyrs=m@189&gl=cn&x={x}&y={y}&z={z}'
+              ],
+              tileSize: 256,
+              attribution: '© Google Maps'
+            }
+          },
+          layers: [
+            {
+              id: 'google-tiles-layer',
+              type: 'raster',
+              source: 'google-tiles',
+              minzoom: 0,
+              maxzoom: 22
+            }
+          ]
+        },
         center: [37.6173, 55.7558], // Москва
         zoom: 10,
         attributionControl: true
