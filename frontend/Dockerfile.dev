@@ -1,0 +1,21 @@
+# Frontend Dockerfile для разработки с hot-reload
+
+FROM node:18-alpine
+
+WORKDIR /app
+
+# Копирование package files
+COPY package*.json ./
+
+# Установка зависимостей
+RUN npm install
+
+# Переменные окружения для разработки
+ENV VITE_API_URL=http://localhost:8000
+ENV NODE_ENV=development
+
+# Порт для Vite dev server
+EXPOSE 3000
+
+# Запуск Vite dev server с hot-reload
+CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]

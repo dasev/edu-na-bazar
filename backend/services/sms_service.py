@@ -22,9 +22,7 @@ class SMSService:
     # Длина кода
     CODE_LENGTH = 6
     
-    # SMSC.RU credentials
-    SMSC_LOGIN = "dasev"
-    SMSC_PASSWORD = "AEuO{p%q"
+    # SMSC.RU API URL
     SMSC_API_URL = "https://smsc.ru/sys/send.php"
     
     @staticmethod
@@ -75,8 +73,8 @@ class SMSService:
         
         # Параметры запроса
         params = {
-            'login': SMSService.SMSC_LOGIN,
-            'psw': SMSService.SMSC_PASSWORD,
+            'login': settings.SMSC_LOGIN,
+            'psw': settings.SMSC_PASSWORD,
             'phones': phone_clean,
             'mes': message,
             'charset': 'utf-8',

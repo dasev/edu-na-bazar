@@ -4,7 +4,7 @@ services:
   # PostgreSQL с PostGIS
   postgres:
     image: postgis/postgis:15-3.4
-    container_name: edu-na-bazar-postgres
+    container_name: edu-na-bazar-postgres-dev
     environment:
       POSTGRES_DB: edu_na_bazar
       POSTGRES_USER: postgres
@@ -14,7 +14,7 @@ services:
     ports:
       - "5432:5432"
     networks:
-      - app-network
+      - dev-network
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 10s
@@ -24,38 +24,39 @@ services:
   # Redis
   redis:
     image: redis:7-alpine
-    container_name: edu-na-bazar-redis
-    command: redis-server --appendonly yes
+    container_name: edu-na-bazar-redis-dev
     ports:
       - "6380:6379"
     volumes:
       - redis_data:/data
     networks:
-      - app-network
+      - dev-network
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
       timeout: 5s
       retries: 5
 
-  # Backend API
+  # Backend API (Development с hot-reload)
   backend:
     build:
       context: ./backend
-      dockerfile: Dockerfile
-    container_name: edu-na-bazar-backend
+      dockerfile: Dockerfile.dev
+    container_name: edu-na-bazar-backend-dev
     environment:
       DATABASE_URL: postgresql+asyncpg://postgres:postgres@postgres:5432/edu_na_bazar
       REDIS_URL: redis://redis:6379/0
-      SECRET_KEY: ${SECRET_KEY:-your-secret-key-change-in-production}
-      ENVIRONMENT: ${ENVIRONMENT:-production}
-      SMS_ENABLED: ${SMS_ENABLED:-false}
-      SMSC_LOGIN: ${SMSC_LOGIN:-}
-      SMSC_PASSWORD: ${SMSC_PASSWORD:-}
+      SECRET_KEY: dev-secret-key-change-in-production
+      ENVIRONMENT: development
+      SMS_ENABLED: "false"
       MAPBOX_ACCESS_TOKEN: ${MAPBOX_ACCESS_TOKEN:-}
-      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://localhost:3000,http://localhost}
     volumes:
-      - backend_uploads:/app/uploads
+      # Mount code для hot-reload
+      - ./backend:/app
+      # Exclude venv
+      - /app/venv
+      # Mount uploads с хоста (реальные файлы)
+      - ./backend/uploads:/app/uploads
     ports:
       - "8000:8000"
     depends_on:
@@ -64,36 +65,35 @@ services:
       redis:
         condition: service_healthy
     networks:
-      - app-network
+      - dev-network
     restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 
-  # Frontend
+  # Frontend (Development с hot-reload)
   frontend:
     build:
       context: ./frontend
-      dockerfile: Dockerfile
-      args:
-        REACT_APP_API_URL: ${REACT_APP_API_URL:-http://localhost:8000}
-        REACT_APP_MAPBOX_TOKEN: ${REACT_APP_MAPBOX_TOKEN:-}
-    container_name: edu-na-bazar-frontend
+      dockerfile: Dockerfile.dev
+    container_name: edu-na-bazar-frontend-dev
+    environment:
+      VITE_API_URL: http://localhost:8000
+      VITE_MAPBOX_TOKEN: ${VITE_MAPBOX_TOKEN:-}
+      NODE_ENV: development
+      CHOKIDAR_USEPOLLING: "true"  # Для Windows hot-reload
+    volumes:
+      # Mount code для hot-reload
+      - ./frontend:/app
+      # Exclude node_modules
+      - /app/node_modules
     ports:
-      - "80:80"
-      - "443:443"
+      - "3000:3000"
     depends_on:
       - backend
     networks:
-      - app-network
+      - dev-network
     restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+    stdin_open: true
+    tty: true
 
 volumes:
   postgres_data:
@@ -101,5 +101,5 @@ volumes:
   backend_uploads:
 
 networks:
-  app-network:
+  dev-network:
     driver: bridge

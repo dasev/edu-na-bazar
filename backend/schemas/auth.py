@@ -54,3 +54,7 @@ class SMSResponse(BaseModel):
     expires_in: int  # Секунды до истечения кода
     # В продакшене НЕ отправляем код! Только для разработки:
     code: Optional[str] = None  # TODO: Убрать в продакшене!
+
+
+# Разрешаем forward references
+TokenResponse.model_rebuild()

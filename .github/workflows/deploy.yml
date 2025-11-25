@@ -50,9 +50,79 @@ jobs:
         key: ${{ secrets.SSH_PRIVATE_KEY }}
         script: |
           cd /opt/edu-na-bazar
+          
+          # Создать backup перед деплоем
+          echo "📦 Creating backup..."
+          docker-compose exec -T postgres pg_dump -U postgres edu_na_bazar | gzip > /backups/pre_deploy_$(date +%Y%m%d_%H%M%S).sql.gz
+          
+          # Обновить код
+          echo "📥 Pulling latest code..."
+          git pull origin main
+          
+          # Обновить образы
+          echo "🐳 Pulling Docker images..."
           docker-compose pull
-          docker-compose up -d --force-recreate
-          docker system prune -af
+          
+          # Остановить контейнеры
+          echo "🛑 Stopping containers..."
+          docker-compose down
+          
+          # Запустить новые контейнеры
+          echo "🚀 Starting new containers..."
+          docker-compose up -d
+          
+          # Применить миграции
+          echo "🔄 Running migrations..."
+          sleep 10  # Ждем запуска БД
+          docker-compose exec -T backend alembic upgrade head
+          
+          # Проверить статус
+          echo "✅ Checking status..."
+          docker-compose ps
+          
+          # Очистить старые образы
+          echo "🧹 Cleaning up..."
+          docker system prune -af --volumes=false
+          
+          echo "🎉 Deployment completed!"
     
-    - name: ✅ Deployment Success
-      run: echo "🎉 Deployed successfully!"
+    - name: 🔍 Health Check
+      uses: appleboy/ssh-action@v1.0.0
+      with:
+        host: ${{ secrets.SERVER_HOST }}
+        username: ${{ secrets.SERVER_USER }}
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        script: |
+          # Ждем запуска сервисов
+          sleep 15
+          
+          # Проверка API
+          echo "🔍 Checking API health..."
+          curl -f http://localhost:8000/api/health || exit 1
+          
+          # Проверка Frontend
+          echo "🔍 Checking Frontend..."
+          curl -f http://localhost || exit 1
+          
+          echo "✅ All health checks passed!"
+    
+    - name: 📊 Deployment Summary
+      if: success()
+      run: |
+        echo "========================================="
+        echo "✅ Deployment Successful!"
+        echo "========================================="
+        echo "🌐 Frontend: https://${{ secrets.SERVER_HOST }}"
+        echo "🔌 API: https://${{ secrets.SERVER_HOST }}/api/health"
+        echo "📅 Time: $(date)"
+        echo "🔖 Commit: ${{ github.sha }}"
+        echo "👤 Author: ${{ github.actor }}"
+    
+    - name: ❌ Deployment Failed
+      if: failure()
+      run: |
+        echo "========================================="
+        echo "❌ Deployment Failed!"
+        echo "========================================="
+        echo "Check logs above for details"
+        exit 1

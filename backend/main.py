@@ -61,9 +61,9 @@ app = FastAPI(
     description="Маркетплейс фермерских хозяйств - прямые продажи от производителей без посредников",
     version="1.0.0",
     lifespan=lifespan,
-    docs_url="/docs",
-    redoc_url="/redoc",
-    debug=True,  # Включаем debug для детальных ошибок
+    docs_url="/docs" if settings.ENVIRONMENT == "development" else None,
+    redoc_url="/redoc" if settings.ENVIRONMENT == "development" else None,
+    debug=settings.ENVIRONMENT == "development",
     exception_handlers={},  # Отключаем встроенные обработчики
     default_response_class=UnicodeJSONResponse,  # Используем кастомный JSON
 )
@@ -97,13 +97,24 @@ async def error_handling_middleware(request: Request, call_next):
         )
 
 # CORS
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=settings.ALLOWED_ORIGINS,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+if settings.ENVIRONMENT == "development":
+    # В development разрешаем все origins (для Cascade browser preview с динамическими портами)
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origin_regex=r"http://(localhost|127\.0\.0\.1)(:\d+)?",
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+else:
+    # В production используем строгий список
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=settings.ALLOWED_ORIGINS,
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
 
 
 # Exception handlers
