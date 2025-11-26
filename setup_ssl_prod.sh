@@ -78,23 +78,39 @@ print_success "Docker установлен"
 
 print_header "🌐 Проверка DNS записей"
 
+# Установка dig если нужно
+if ! command -v dig &> /dev/null; then
+    print_info "Устанавливаем dnsutils..."
+    apt update -qq
+    apt install -y dnsutils > /dev/null 2>&1
+    print_success "dnsutils установлен"
+fi
+
 print_info "Проверка $DOMAIN..."
-DOMAIN_IP=$(dig +short $DOMAIN | tail -n1)
+DOMAIN_IP=$(dig +short $DOMAIN @8.8.8.8 | grep -E '^[0-9.]+$' | head -n1)
+
+if [ -z "$DOMAIN_IP" ]; then
+    print_warning "DNS запись для $DOMAIN не найдена через dig"
+    print_info "Пробуем альтернативный метод (nslookup)..."
+    DOMAIN_IP=$(nslookup $DOMAIN 8.8.8.8 2>/dev/null | grep -A1 "Name:" | grep "Address:" | awk '{print $2}' | head -n1)
+fi
 
 if [ -z "$DOMAIN_IP" ]; then
     print_error "DNS запись для $DOMAIN не найдена"
     print_warning "Настройте A-запись в панели управления доменом:"
     echo "  Тип: A"
     echo "  Имя: @"
-    echo "  Значение: $(curl -s ifconfig.me)"
+    echo "  Значение: $(curl -s ifconfig.me || hostname -I | awk '{print $1}')"
     echo "  TTL: 3600"
+    echo ""
+    print_info "После настройки DNS подождите 5-60 минут и запустите скрипт снова"
     exit 1
 fi
 
 print_success "$DOMAIN → $DOMAIN_IP"
 
 print_info "Проверка www.$DOMAIN..."
-WWW_IP=$(dig +short www.$DOMAIN | tail -n1)
+WWW_IP=$(dig +short www.$DOMAIN @8.8.8.8 | grep -E '^[0-9.]+$' | head -n1)
 
 if [ -z "$WWW_IP" ]; then
     print_warning "DNS запись для www.$DOMAIN не найдена"
