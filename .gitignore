@@ -71,3 +71,23 @@ backend/uploads/categories/*.jpg
 *.backup
 dump*.sql
 1.sql
+
+# SSL Certificates and Keys (NEVER commit!)
+*.key
+*.pem
+*.crt
+*.csr
+fullchain.crt
+ca_bundle.crt
+private.key
+certificate.crt
+
+# Let's Encrypt
+letsencrypt/
+
+# SSL configs with real domain (generated on server)
+frontend/nginx-ssl.conf
+
+# Backup files
+*.old
+.env.backup

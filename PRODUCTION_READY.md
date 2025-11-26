@@ -12,13 +12,15 @@
 - [x] Volumes для персистентности данных
 - [x] Скрипты запуска (START_DOCKER.bat)
 
-### ✅ Безопасность (80%)
+### ✅ Безопасность (90%)
 - [x] Убран хардкод SMSC credentials
 - [x] Переменные окружения через .env
 - [x] CORS настраивается через env
 - [x] Debug режим отключается в production
 - [x] API docs скрыты в production
 - [x] Multi-stage build (меньший размер образов)
+- [x] **SSL/HTTPS** - Let's Encrypt с автообновлением
+- [x] Security headers (HSTS, CSP, X-Frame-Options)
 - [ ] Rate limiting (TODO)
 - [ ] CSRF защита (TODO)
 
@@ -40,6 +42,10 @@
 - [x] CICD_SETUP.md - настройка деплоя
 - [x] README.md обновлен
 - [x] .env.example с комментариями
+- [x] **SSL_SETUP.md** - полная инструкция по SSL
+- [x] **SSL_QUICK_START.md** - быстрый старт SSL
+- [x] **SSL_CHECKLIST.md** - пошаговый чеклист
+- [x] **setup_ssl.sh** - автоматический скрипт настройки
 
 ---
 
@@ -459,8 +465,8 @@ engine = create_async_engine(
 1. ✅ Убрать хардкод credentials
 2. ✅ Настроить .env
 3. ✅ Контейнеризация
-4. ⏳ Создать миграции Alembic
-5. ⏳ SSL сертификаты
+4. ✅ Создать миграции Alembic
+5. ✅ **SSL сертификаты** - готово! (setup_ssl.sh)
 6. ⏳ Backup БД
 
 ### Важно (сделать в первую неделю)
