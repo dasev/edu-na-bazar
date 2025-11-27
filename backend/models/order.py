@@ -52,7 +52,10 @@ class Order(Base):
     items = relationship("OrderItem", back_populates="order", cascade="all, delete-orphan")
     
     def __repr__(self):
-        return f"<Order {self.id} - {self.status} - {self.total_amount}₽>"
+        try:
+            return f"<Order {self.id} - {self.status} - {self.total_amount}₽>"
+        except:
+            return f"<Order (detached)>"
 
 
 class OrderItem(Base):

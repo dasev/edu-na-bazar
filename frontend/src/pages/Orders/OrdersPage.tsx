@@ -175,7 +175,7 @@ export const OrdersPage = () => {
               <div key={order.id} className="order-card">
                 <div className="order-header">
                   <div className="order-info">
-                    <div className="order-number">Заказ №{order.id.slice(0, 8)}</div>
+                    <div className="order-number">Заказ №{order.id}</div>
                     <div className="order-date">{formatDate(order.created_at)}</div>
                   </div>
                   <div
@@ -191,12 +191,6 @@ export const OrdersPage = () => {
                     <span className="detail-label">Адрес доставки:</span>
                     <span className="detail-value">{order.delivery_address}</span>
                   </div>
-                  {order.delivery_time && (
-                    <div className="order-detail-item">
-                      <span className="detail-label">Время доставки:</span>
-                      <span className="detail-value">{formatDate(order.delivery_time)}</span>
-                    </div>
-                  )}
                   <div className="order-detail-item">
                     <span className="detail-label">Способ оплаты:</span>
                     <span className="detail-value">
@@ -209,15 +203,15 @@ export const OrdersPage = () => {
                   <div className="order-items">
                     {order.items.map((item: any) => (
                       <div key={item.id} className="order-item">
-                        {item.product?.image && (
+                        {item.product_image && (
                           <img
-                            src={item.product.image}
-                            alt={item.product.name}
+                            src={item.product_image.startsWith('http') ? item.product_image : `http://localhost:8000${item.product_image}`}
+                            alt={item.product_name || 'Товар'}
                             className="order-item-image"
                           />
                         )}
                         <div className="order-item-info">
-                          <div className="order-item-name">{item.product?.name || 'Товар'}</div>
+                          <div className="order-item-name">{item.product_name || `Товар ${item.product_id}`}</div>
                           <div className="order-item-quantity">
                             {item.quantity} шт. × {formatPrice(item.price)}
                           </div>
@@ -233,14 +227,8 @@ export const OrdersPage = () => {
                 <div className="order-footer">
                   <div className="order-total">
                     <span className="total-label">Итого:</span>
-                    <span className="total-value">{formatPrice(order.total)}</span>
+                    <span className="total-value">{formatPrice(order.total_amount)}</span>
                   </div>
-                  <Button
-                    text="Подробнее"
-                    type="normal"
-                    stylingMode="outlined"
-                    onClick={() => navigate(`/orders/${order.id}`)}
-                  />
                 </div>
               </div>
             ))}

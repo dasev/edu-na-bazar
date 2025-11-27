@@ -11,7 +11,6 @@ import { useFiltersStore } from '../../store/filtersStore'
 import './FilterPanel.css'
 
 const ratingOptions = [
-  { id: 0, name: 'Любой' },
   { id: 4.5, name: '4.5 и выше' },
   { id: 4.0, name: '4.0 и выше' },
   { id: 3.5, name: '3.5 и выше' },
@@ -57,25 +56,11 @@ export default function FilterPanel() {
 
   const activeFiltersCount = getActiveFiltersCount()
 
-  // Добавляем опцию "Все категории" в начало списка
-  const categoriesWithAll = [
-    { id: 'all', name: 'Все категории', icon: '📋' },  // Используем специальное значение
-    ...(Array.isArray(categories) ? categories : [])
-  ]
+  // Используем категории как есть, без добавления "Все категории"
+  const categoriesWithAll = Array.isArray(categories) ? categories : []
 
   return (
     <div className="filter-panel">
-      {activeFiltersCount > 0 && (
-        <div className="filter-panel__header">
-          <Button
-            text={`Сбросить фильтры (${activeFiltersCount})`}
-            stylingMode="text"
-            onClick={resetFilters}
-            width="100%"
-          />
-        </div>
-      )}
-
       <div className="filter-panel__content">
         {/* Категория */}
         <div className="filter-section">
@@ -84,16 +69,17 @@ export default function FilterPanel() {
           </label>
           <SelectBox
             dataSource={categoriesWithAll}
-            value={category_id || 'all'}
+            value={category_id ?? null}
             onValueChanged={(e) => {
-              // Если выбрано "Все категории" ('all'), устанавливаем undefined
-              setFilter('category_id', e.value === 'all' ? undefined : e.value)
-              setFilter('skip', 0) // Сбрасываем пагинацию
+              console.log('🔄 Category changed:', { from: category_id, to: e.value, event: e.event })
+              const newValue = (e.value === null || e.value === undefined) ? undefined : e.value
+              console.log('➡️ Setting category_id to:', newValue)
+              setFilter('category_id', newValue)
             }}
             displayExpr="name"
             valueExpr="id"
-            placeholder="Выберите категорию"
-            showClearButton={false}
+            placeholder="Все категории"
+            showClearButton={true}
             disabled={categoriesLoading}
             searchEnabled={true}
             searchMode="contains"
@@ -117,18 +103,17 @@ export default function FilterPanel() {
             Магазин {storesLoading && '(загрузка...)'} 
           </label>
           <SelectBox
-            value={store_id || null}
+            value={store_id ?? null}
             onValueChanged={(e) => {
-              setFilter('store_id', e.value)
-              setFilter('skip', 0)
+              console.log('🏪 Store changed:', { from: store_id, to: e.value, event: e.event })
+              const newValue = (e.value === null || e.value === undefined) ? undefined : e.value
+              console.log('➡️ Setting store_id to:', newValue)
+              setFilter('store_id', newValue)
             }}
-            dataSource={[
-              { id: null, name: 'Все магазины' },
-              ...stores
-            ]}
+            dataSource={stores}
             displayExpr="name"
             valueExpr="id"
-            placeholder="Выберите магазин"
+            placeholder="Все магазины"
             showClearButton={true}
             disabled={storesLoading}
             searchEnabled={true}
@@ -147,7 +132,6 @@ export default function FilterPanel() {
               value={min_price}
               onValueChanged={(e) => {
                 setFilter('min_price', e.value)
-                setFilter('skip', 0) // Сбрасываем пагинацию
               }}
               placeholder="От"
               min={0}
@@ -159,7 +143,6 @@ export default function FilterPanel() {
               value={max_price}
               onValueChanged={(e) => {
                 setFilter('max_price', e.value)
-                setFilter('skip', 0) // Сбрасываем пагинацию
               }}
               placeholder="До"
               min={min_price || 0}
@@ -174,15 +157,16 @@ export default function FilterPanel() {
           <label className="filter-label">Минимальный рейтинг</label>
           <SelectBox
             dataSource={ratingOptions}
-            value={min_rating || 0}
+            value={min_rating ?? null}
             onValueChanged={(e) => {
-              // Если выбрано "Любой" (0), устанавливаем undefined
-              setFilter('min_rating', e.value === 0 ? undefined : e.value)
-              setFilter('skip', 0) // Сбрасываем пагинацию
+              console.log('⭐ Rating changed:', { from: min_rating, to: e.value, event: e.event })
+              const newValue = (e.value === null || e.value === undefined) ? undefined : e.value
+              console.log('➡️ Setting min_rating to:', newValue)
+              setFilter('min_rating', newValue)
             }}
             displayExpr="name"
             valueExpr="id"
-            placeholder="Любой"
+            placeholder="Любой рейтинг"
             showClearButton={true}
             acceptCustomValue={false}
             width="100%"
@@ -196,10 +180,25 @@ export default function FilterPanel() {
             value={in_stock || false}
             onValueChanged={(e) => {
               setFilter('in_stock', e.value ? true : undefined)
-              setFilter('skip', 0) // Сбрасываем пагинацию
             }}
           />
         </div>
+
+        {/* Кнопка сброса фильтров */}
+        {activeFiltersCount > 0 && (
+          <div className="filter-section" style={{ marginTop: '16px' }}>
+            <Button
+              text={`Сбросить фильтры (${activeFiltersCount})`}
+              stylingMode="outlined"
+              type="normal"
+              onClick={() => {
+                console.log('🔄 Resetting all filters')
+                resetFilters()
+              }}
+              width="100%"
+            />
+          </div>
+        )}
       </div>
     </div>
   )

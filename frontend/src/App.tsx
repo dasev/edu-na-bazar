@@ -12,6 +12,7 @@ import { OrdersPage } from './pages/Orders/OrdersPage'
 import { MyStoresPage } from './pages/MyStores/MyStoresPage'
 import { CreateStorePage } from './pages/MyStores/CreateStorePage'
 import StoreProductsPage from './pages/StoreProducts/StoreProductsPage'
+import StoreOrdersPage from './pages/StoreOrders/StoreOrdersPage'
 import ProductEditPage from './pages/StoreProducts/ProductEditPage'
 import StoresPage from './pages/Stores/StoresPage'
 import MapPage from './pages/Map/MapPage'
@@ -132,6 +133,7 @@ function App() {
               <Route path="/my-stores/create" element={<CreateStorePage />} />
               <Route path="/my-stores/:storeId/edit" element={<EditStorePage />} />
               <Route path="/my-stores/:storeId/products" element={<StoreProductsPage />} />
+              <Route path="/my-stores/:storeId/orders" element={<StoreOrdersPage />} />
               <Route path="/my-stores/:storeId/products/:productId" element={<ProductEditPage />} />
               <Route path="/moderation" element={<ModerationPage />} />
               <Route path="/admin/users" element={<AdminUsersPage />} />

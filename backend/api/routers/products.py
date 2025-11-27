@@ -25,6 +25,7 @@ async def get_products(
     store_id: Optional[int] = Query(None),
     min_price: Optional[float] = Query(None),
     max_price: Optional[float] = Query(None),
+    min_rating: Optional[float] = Query(None),
     in_stock: Optional[bool] = Query(None),
     with_images: Optional[bool] = Query(None),
     search: Optional[str] = Query(None),
@@ -48,6 +49,8 @@ async def get_products(
     - **skip, limit**: Пагинация
     """
     
+    print(f"🔍 GET /products: category_id={category_id}, min_rating={min_rating}, skip={skip}, limit={limit}")
+    
     # Базовый запрос - только активные товары для каталога
     query = select(Product).where(Product.status == "active")
     
@@ -63,6 +66,9 @@ async def get_products(
     
     if max_price is not None:
         query = query.where(Product.price <= max_price)
+    
+    if min_rating is not None:
+        query = query.where(Product.rating >= min_rating)
     
     if in_stock is not None:
         query = query.where(Product.in_stock == in_stock)

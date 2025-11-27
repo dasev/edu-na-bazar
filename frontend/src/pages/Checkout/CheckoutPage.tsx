@@ -13,6 +13,7 @@ import { useAuthStore } from '../../store/authStore'
 import { ordersApi } from '../../api'
 import { showToast } from '../../utils/toast'
 import type { OrderCreate } from '../../api/types'
+import AddressInput from '../../components/AddressInput/AddressInput'
 import './CheckoutPage.css'
 
 const paymentMethods = [
@@ -26,11 +27,19 @@ export default function CheckoutPage() {
   const { isAuthenticated, user } = useAuthStore()
   const { cart, fetchCart, clearCart } = useCartStore()
   
+  // Дата доставки по умолчанию - через 2 дня
+  const getDefaultDeliveryTime = () => {
+    const date = new Date()
+    date.setDate(date.getDate() + 2)
+    date.setHours(12, 0, 0, 0) // Устанавливаем время на 12:00
+    return date
+  }
+
   const [formData, setFormData] = useState({
     contact_name: user?.full_name || '',
     contact_phone: user?.phone || '',
-    delivery_address: '',
-    delivery_time: null as Date | null,
+    delivery_address: user?.address || '', // Автозаполнение адреса из профиля
+    delivery_time: getDefaultDeliveryTime(),
     delivery_comment: '',
     payment_method: 'card',
     comment: '',
@@ -44,12 +53,17 @@ export default function CheckoutPage() {
       navigate('/')
       return
     }
-    if (!cart || cart.items.length === 0) {
-      navigate('/cart')
-      return
-    }
+    // Загружаем корзину только один раз при монтировании
     fetchCart()
-  }, [isAuthenticated, cart, fetchCart, navigate])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated])
+  
+  // Проверяем пустую корзину отдельно
+  useEffect(() => {
+    if (cart && cart.items.length === 0) {
+      navigate('/cart')
+    }
+  }, [cart, navigate])
 
   const validate = (): boolean => {
     const newErrors: Record<string, string> = {}
@@ -96,9 +110,10 @@ export default function CheckoutPage() {
       await clearCart()
       
       // Показываем успех и переходим
-      showToast.success(`Заказ №${order.id.slice(0, 8)} успешно создан!`)
+      showToast.success(`Заказ №${order.id} успешно создан!`)
       setTimeout(() => navigate('/orders'), 1500)
     } catch (error: any) {
+      console.error('Order creation error:', error)
       showToast.error(error.response?.data?.detail || 'Ошибка создания заказа')
     } finally {
       setSubmitting(false)
@@ -148,15 +163,18 @@ export default function CheckoutPage() {
               <h2>Доставка</h2>
               
               <div className="form-field">
-                <label>Адрес доставки *</label>
-                <TextArea
+                <AddressInput
                   value={formData.delivery_address}
-                  onValueChanged={(e) => setFormData({ ...formData, delivery_address: e.value })}
-                  placeholder="г. Москва, ул. Ленина, д. 10, кв. 5"
-                  height={80}
-                  isValid={!errors.delivery_address}
-                  validationError={errors.delivery_address}
+                  onValueChanged={(address, details) => {
+                    console.log('Address selected:', address, details)
+                    setFormData({ ...formData, delivery_address: address })
+                  }}
+                  placeholder="Начните вводить адрес..."
+                  label="Адрес доставки *"
                 />
+                {errors.delivery_address && (
+                  <div className="validation-error">{errors.delivery_address}</div>
+                )}
               </div>
 
               <div className="form-field">
@@ -221,7 +239,7 @@ export default function CheckoutPage() {
                       {item.product_name} × {item.quantity}
                     </span>
                     <span className="item-price">
-                      {item.subtotal.toFixed(2)} ₽
+                      {Number(item.subtotal).toFixed(2)} ₽
                     </span>
                   </div>
                 ))}
@@ -229,7 +247,7 @@ export default function CheckoutPage() {
 
               <div className="order-summary__total">
                 <span>Итого:</span>
-                <span>{cart.total.toFixed(2)} ₽</span>
+                <span>{Number(cart.total).toFixed(2)} ₽</span>
               </div>
 
               <Button

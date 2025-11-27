@@ -13,7 +13,6 @@ export default function CatalogPage() {
   const filtersStore = useFiltersStore()
   const [searchParams] = useSearchParams()
   const [allProducts, setAllProducts] = useState<any[]>([])
-  const [isFirstLoad, setIsFirstLoad] = useState(true)
   
   // Применяем фильтр по магазину из URL
   useEffect(() => {
@@ -53,51 +52,52 @@ export default function CatalogPage() {
   
   const { data: productsData, isLoading } = useQuery({
     queryKey: ['products', filters],
-    queryFn: () => productsApi.getProducts(filters),
+    queryFn: () => {
+      console.log('📡 Fetching products with filters:', filters)
+      return productsApi.getProducts(filters)
+    },
   })
   
   const meta = productsData?.meta
+  
+  // Логируем результаты
+  useEffect(() => {
+    if (productsData) {
+      console.log('📦 Products received:', {
+        count: productsData.data?.length || 0,
+        total: meta?.total || 0,
+        skip: filters.skip,
+        limit: filters.limit
+      })
+    }
+  }, [productsData, meta, filters.skip, filters.limit])
   
   // Накапливаем товары при загрузке новых или сбрасываем при изменении фильтров
   useEffect(() => {
     if (productsData?.data) {
       const skip = filters.skip || 0
+      console.log('🔄 Updating allProducts:', { skip, newCount: productsData.data.length })
       if (skip === 0) {
         // Сброс фильтров - показываем только новые товары
+        console.log('✅ Setting allProducts to new data')
         setAllProducts(productsData.data)
       } else {
         // Добавляем к существующим
+        console.log('➕ Appending to existing products')
         setAllProducts(prev => [...prev, ...productsData.data])
       }
     }
   }, [productsData, filters.skip])
   
-  // Сбрасываем товары при изменении любых фильтров кроме skip
-  useEffect(() => {
-    if (isFirstLoad) {
-      setIsFirstLoad(false)
-      return
-    }
-    filtersStore.setFilter('skip', 0)
-    setAllProducts([])
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    filters.category_id,
-    filters.store_id,
-    filters.min_price,
-    filters.max_price,
-    filters.min_rating,
-    filters.in_stock,
-    filters.search,
-    filters.sort_by,
-    filters.sort_order,
-  ])
-  
   const handleLoadMore = () => {
     const skip = filters.skip || 0
     const limit = filters.limit || 20
+    console.log('🔄 Load More clicked:', { skip, limit, total: meta?.total, hasMore })
     if (meta && skip + limit < meta.total) {
+      console.log('✅ Loading more products, new skip:', skip + limit)
       filtersStore.setFilter('skip', skip + limit)
+    } else {
+      console.log('❌ No more products to load')
     }
   }
 

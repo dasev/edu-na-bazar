@@ -43,8 +43,8 @@ export const EditStorePage = () => {
   const { data: store, isLoading } = useQuery({
     queryKey: ['store', storeId],
     queryFn: async () => {
-      const response = await myStoresApi.getStore(Number(storeId));
-      return response.data;
+      const store = await myStoresApi.getStore(storeId!);
+      return store;
     },
     enabled: !!storeId,
   });
@@ -84,7 +84,7 @@ export const EditStorePage = () => {
     setLoading(true);
 
     try {
-      await myStoresApi.updateStore(Number(storeId), {
+      await myStoresApi.updateStore(storeId!, {
         inn,
         name,
         legal_name: legalName,

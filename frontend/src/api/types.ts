@@ -114,32 +114,29 @@ export interface OrderItem {
 }
 
 export interface OrderItemResponse {
-  id: string
-  order_id: string
-  product_id: string
+  id: number
+  order_id: number
+  product_id: number
+  product_name?: string
+  product_image?: string
   quantity: number
   price: number
-  product_name: string
-  product_image?: string
+  subtotal: number
   created_at: string
 }
 
 export interface Order {
-  id: string
-  user_id: string
+  id: number
+  user_id: number
+  store_id?: number
   status: string
-  total: number
+  total_amount: number
   delivery_address: string
-  delivery_time?: string
-  delivery_comment?: string
+  delivery_phone: string
   payment_method: string
-  payment_status: string
-  contact_phone: string
-  contact_name: string
-  comment?: string
+  notes?: string
   created_at: string
   updated_at: string
-  completed_at?: string
   items: OrderItemResponse[]
 }
 
@@ -171,6 +168,7 @@ export interface User {
   phone: string
   full_name: string
   email?: string
+  address?: string
   is_verified: boolean
   created_at: string
 }

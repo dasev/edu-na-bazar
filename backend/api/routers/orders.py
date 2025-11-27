@@ -32,13 +32,21 @@ async def get_orders(
 ):
     """Получить заказы пользователя"""
     try:
-        query = select(Order).where(Order.user_id == user.id)
+        from sqlalchemy.orm import selectinload
+        
+        query = select(Order).where(Order.user_id == user.id).options(selectinload(Order.items))
         
         if status:
             query = query.where(Order.status == status)
         
         # Подсчет
-        count_query = select(func.count()).select_from(query.subquery())
+        count_query = select(func.count()).select_from(
+            select(Order).where(Order.user_id == user.id).subquery()
+        )
+        if status:
+            count_query = select(func.count()).select_from(
+                select(Order).where(Order.user_id == user.id, Order.status == status).subquery()
+            )
         total_result = await db.execute(count_query)
         total = total_result.scalar()
         
@@ -48,9 +56,48 @@ async def get_orders(
         result = await db.execute(query)
         orders = result.scalars().all()
         
-        # Пока возвращаем без items для отладки
+        # Преобразуем в словари с загрузкой информации о товарах
+        orders_data = []
+        for order in orders:
+            # Загружаем товары для items
+            items_with_products = []
+            for item in order.items:
+                # Получаем товар
+                from models.product import Product
+                product_result = await db.execute(
+                    select(Product).where(Product.id == item.product_id)
+                )
+                product = product_result.scalar_one_or_none()
+                
+                items_with_products.append({
+                    "id": item.id,
+                    "order_id": item.order_id,
+                    "product_id": item.product_id,
+                    "product_name": product.name if product else f"Товар {item.product_id}",
+                    "product_image": product.image if product else None,
+                    "quantity": item.quantity,
+                    "price": float(item.price),
+                    "subtotal": item.subtotal,
+                    "created_at": item.created_at,
+                })
+            
+            orders_data.append({
+                "id": order.id,
+                "user_id": order.user_id,
+                "store_id": order.store_id,
+                "status": order.status,
+                "total_amount": float(order.total_amount),
+                "delivery_address": order.delivery_address,
+                "delivery_phone": order.delivery_phone,
+                "payment_method": order.payment_method,
+                "notes": order.notes,
+                "created_at": order.created_at,
+                "updated_at": order.updated_at,
+                "items": items_with_products
+            })
+        
         return OrderListResponse(
-            data=orders,
+            data=orders_data,
             meta={
                 "total": total,
                 "skip": skip,
@@ -68,26 +115,51 @@ async def get_orders(
 
 @router.get("/{order_id}", response_model=OrderResponse)
 async def get_order(
-    order_id: str,
+    order_id: int,
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
     """Получить детали заказа"""
+    from sqlalchemy.orm import selectinload
+    
     result = await db.execute(
-        select(Order).where(Order.id == order_id, Order.user_id == user.id)
+        select(Order)
+        .where(Order.id == order_id, Order.user_id == user.id)
+        .options(selectinload(Order.items))
     )
     order = result.scalar_one_or_none()
     
     if not order:
         raise HTTPException(status_code=404, detail="Заказ не найден")
     
-    # Загружаем items
-    items_result = await db.execute(
-        select(OrderItem).where(OrderItem.order_id == order.id)
-    )
-    order.items = items_result.scalars().all()
+    # Преобразуем в словарь
+    order_dict = {
+        "id": order.id,
+        "user_id": order.user_id,
+        "store_id": order.store_id,
+        "status": order.status,
+        "total_amount": float(order.total_amount),
+        "delivery_address": order.delivery_address,
+        "delivery_phone": order.delivery_phone,
+        "payment_method": order.payment_method,
+        "notes": order.notes,
+        "created_at": order.created_at,
+        "updated_at": order.updated_at,
+        "items": [
+            {
+                "id": item.id,
+                "order_id": item.order_id,
+                "product_id": item.product_id,
+                "quantity": item.quantity,
+                "price": float(item.price),
+                "subtotal": item.subtotal,
+                "created_at": item.created_at,
+            }
+            for item in order.items
+        ]
+    }
     
-    return order
+    return order_dict
 
 
 @router.post("/", response_model=OrderResponse, status_code=201)
@@ -97,89 +169,109 @@ async def create_order(
     db: AsyncSession = Depends(get_db)
 ):
     """Создать новый заказ"""
-    # Проверяем товары и считаем сумму
-    total = 0
-    order_items_data = []
-    
-    for item_data in order_data.items:
-        # Получаем товар
+    try:
+        print(f"📝 Creating order for user {user.id}")
+        print(f"Order data: {order_data}")
+        
+        # Проверяем товары и считаем сумму
+        total = 0
+        order_items_data = []
+        
+        for item_data in order_data.items:
+            # Получаем товар
+            result = await db.execute(
+                select(Product).where(Product.id == item_data.product_id)
+            )
+            product = result.scalar_one_or_none()
+            
+            if not product:
+                raise HTTPException(
+                    status_code=404,
+                    detail=f"Товар {item_data.product_id} не найден"
+                )
+            
+            if not product.in_stock:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Товар {product.name} нет в наличии"
+                )
+            
+            subtotal = float(product.price) * item_data.quantity
+            total += subtotal
+            
+            order_items_data.append({
+                "product_id": product.id,
+                "quantity": item_data.quantity,
+                "price": product.price,
+            })
+        
+        # Создаем заказ
+        order = Order(
+            user_id=user.id,
+            status="created",
+            total_amount=total,
+            delivery_address=order_data.delivery_address,
+            delivery_phone=order_data.contact_phone,
+            payment_method=order_data.payment_method,
+            notes=order_data.comment,
+        )
+        
+        db.add(order)
+        await db.flush()  # Получаем ID заказа
+        
+        # Создаем items
+        for item_data in order_items_data:
+            order_item = OrderItem(
+                order_id=order.id,
+                **item_data
+            )
+            db.add(order_item)
+        
+        await db.commit()
+        
+        # Загружаем заказ заново с items
+        from sqlalchemy.orm import selectinload
         result = await db.execute(
-            select(Product).where(Product.id == item_data.product_id)
+            select(Order)
+            .where(Order.id == order.id)
+            .options(selectinload(Order.items))
         )
-        product = result.scalar_one_or_none()
+        order_with_items = result.scalar_one()
         
-        if not product:
-            raise HTTPException(
-                status_code=404,
-                detail=f"Товар {item_data.product_id} не найден"
-            )
+        # Преобразуем в словарь чтобы избежать проблем с сессией
+        order_dict = {
+            "id": order_with_items.id,
+            "user_id": order_with_items.user_id,
+            "store_id": order_with_items.store_id,
+            "status": order_with_items.status,
+            "total_amount": float(order_with_items.total_amount),
+            "delivery_address": order_with_items.delivery_address,
+            "delivery_phone": order_with_items.delivery_phone,
+            "payment_method": order_with_items.payment_method,
+            "notes": order_with_items.notes,
+            "created_at": order_with_items.created_at,
+            "updated_at": order_with_items.updated_at,
+            "items": [
+                {
+                    "id": item.id,
+                    "order_id": item.order_id,
+                    "product_id": item.product_id,
+                    "quantity": item.quantity,
+                    "price": float(item.price),
+                    "subtotal": item.subtotal,
+                    "created_at": item.created_at,
+                }
+                for item in order_with_items.items
+            ]
+        }
         
-        if not product.in_stock:
-            raise HTTPException(
-                status_code=400,
-                detail=f"Товар {product.name} нет в наличии"
-            )
-        
-        if product.stock_quantity < item_data.quantity:
-            raise HTTPException(
-                status_code=400,
-                detail=f"Недостаточно товара {product.name} на складе"
-            )
-        
-        subtotal = float(product.price) * item_data.quantity
-        total += subtotal
-        
-        order_items_data.append({
-            "product_id": product.id,
-            "product_name": product.name,
-            "product_image": product.image,
-            "quantity": item_data.quantity,
-            "price": product.price,
-        })
-    
-    # Создаем заказ
-    order = Order(
-        user_id=user.id,
-        status="created",
-        total=total,
-        delivery_address=order_data.delivery_address,
-        delivery_time=order_data.delivery_time,
-        delivery_comment=order_data.delivery_comment,
-        payment_method=order_data.payment_method,
-        payment_status="pending",
-        contact_phone=order_data.contact_phone,
-        contact_name=order_data.contact_name,
-        comment=order_data.comment,
-    )
-    
-    db.add(order)
-    await db.flush()  # Получаем ID заказа
-    
-    # Создаем items
-    for item_data in order_items_data:
-        order_item = OrderItem(
-            order_id=order.id,
-            **item_data
-        )
-        db.add(order_item)
-        
-        # Уменьшаем количество на складе
-        result = await db.execute(
-            select(Product).where(Product.id == item_data["product_id"])
-        )
-        product = result.scalar_one()
-        product.stock_quantity -= item_data["quantity"]
-    
-    await db.commit()
-    await db.refresh(order)
-    
-    # Загружаем items
-    items_result = await db.execute(
-        select(OrderItem).where(OrderItem.order_id == order.id)
-    )
-    order.items = items_result.scalars().all()
-    
-    return order
+        print(f"✅ Order created: {order_dict['id']}")
+        return order_dict
+    except Exception as e:
+        print(f"❌ Error creating order: {e}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Ошибка создания заказа: {str(e)}")
 
 
 @router.put("/{order_id}/status", response_model=OrderResponse)

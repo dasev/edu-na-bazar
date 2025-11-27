@@ -22,7 +22,8 @@ export default function CartPage() {
     if (isAuthenticated) {
       fetchCart()
     }
-  }, [isAuthenticated, fetchCart])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated])
 
   const handleQuantityChange = async (itemId: string, newQuantity: number) => {
     try {
@@ -120,7 +121,7 @@ export default function CartPage() {
                     <div className="cart-item__info">
                       <h3 className="cart-item__name" onClick={() => navigate(`/product/${item.product_id}`)} style={{ cursor: 'pointer' }}>{item.product_name}</h3>
                       <div className="cart-item__price">
-                        {item.product_price.toFixed(2)} ₽
+                        {Number(item.product_price).toFixed(2)} ₽
                       </div>
                       {!item.product_in_stock && (
                         <div className="cart-item__out-of-stock">
@@ -142,7 +143,7 @@ export default function CartPage() {
                     </div>
 
                     <div className="cart-item__subtotal">
-                      {item.subtotal.toFixed(2)} ₽
+                      {Number(item.subtotal).toFixed(2)} ₽
                     </div>
 
                     <div className="cart-item__actions">
@@ -212,7 +213,7 @@ export default function CartPage() {
 
               <div className="cart-summary__row cart-summary__total">
                 <span>Сумма:</span>
-                <span>{total.toFixed(2)} ₽</span>
+                <span>{Number(total).toFixed(2)} ₽</span>
               </div>
 
               {!isAuthenticated && (

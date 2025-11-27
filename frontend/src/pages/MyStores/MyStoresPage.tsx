@@ -168,6 +168,13 @@ export const MyStoresPage = () => {
                     onClick={() => navigate(`/my-stores/${store.id}/products`)}
                   />
                   <Button
+                    text="Заказы"
+                    icon="cart"
+                    type="default"
+                    stylingMode="contained"
+                    onClick={() => navigate(`/my-stores/${store.id}/orders`)}
+                  />
+                  <Button
                     text="Редактировать"
                     icon="edit"
                     type="default"

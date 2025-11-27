@@ -35,12 +35,12 @@ class OrderUpdateStatus(BaseModel):
 class OrderItemResponse(BaseModel):
     """Схема ответа с товаром в заказе"""
     id: int
+    order_id: int
     product_id: int
-    product_name: str
-    product_image: Optional[str]
     quantity: int
     price: float
     subtotal: float
+    created_at: datetime
     
     class Config:
         from_attributes = True
@@ -50,19 +50,15 @@ class OrderResponse(BaseModel):
     """Схема ответа с заказом"""
     id: int
     user_id: int
+    store_id: Optional[int]
     status: str
-    total: float
+    total_amount: float
     delivery_address: str
-    delivery_time: Optional[datetime]
-    delivery_comment: Optional[str]
+    delivery_phone: str
     payment_method: str
-    payment_status: str
-    contact_phone: str
-    contact_name: str
-    comment: Optional[str]
+    notes: Optional[str]
     created_at: datetime
     updated_at: datetime
-    completed_at: Optional[datetime]
     items: List[OrderItemResponse] = []
     
     class Config:

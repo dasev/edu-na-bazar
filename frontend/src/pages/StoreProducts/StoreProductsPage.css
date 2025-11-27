@@ -101,6 +101,17 @@
   flex: 1;
 }
 
+/* Стили кнопок */
+.store-products-page .dx-button.dx-button-default.dx-button-mode-contained {
+  background-color: #667eea !important;
+  border-color: #667eea !important;
+}
+
+.store-products-page .dx-button.dx-button-default.dx-button-mode-contained:hover {
+  background-color: #5568d3 !important;
+  border-color: #5568d3 !important;
+}
+
 .no-products {
   text-align: center;
   padding: 60px 20px;

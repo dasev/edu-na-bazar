@@ -77,7 +77,7 @@ async def get_cart(
     total = Decimal(0)
     
     for cart_item, product in rows:
-        subtotal = product.price * cart_item.quantity
+        subtotal = Decimal(str(product.price)) * cart_item.quantity
         total += subtotal
         
         items.append({
