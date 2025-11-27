@@ -83,54 +83,93 @@ export const MyStoresPage = () => {
         )}
 
         {!isLoading && !error && stores && stores.length > 0 && (
-          <div className="stores-grid">
+          <div className="stores-list">
             {stores.map((store: Store) => (
-              <div key={store.id} className="store-card">
-                <div className="store-card__header">
+              <div key={store.id} className="store-card-wide">
+                <div className="store-card-wide__left">
                   {store.logo ? (
-                    <img src={store.logo} alt={store.name} className="store-logo" />
+                    <img src={store.logo} alt={store.name} className="store-logo-large" />
                   ) : (
-                    <div className="store-logo-placeholder">🏪</div>
+                    <div className="store-logo-placeholder-large">🏪</div>
                   )}
-                  <div className="store-info">
-                    <h3>{store.name}</h3>
-                    <p className="store-legal-name">{store.legal_name}</p>
+                </div>
+
+                <div className="store-card-wide__content">
+                  <div className="store-card-wide__header">
+                    <div>
+                      <h2>{store.name}</h2>
+                      <p className="store-legal-name">{store.legal_name}</p>
+                    </div>
                     {getStatusBadge(store.status)}
                   </div>
-                </div>
 
-                <div className="store-card__body">
-                  <div className="store-detail">
-                    <span className="detail-label">ИНН:</span>
-                    <span className="detail-value">{store.inn}</span>
+                  <div className="store-card-wide__details">
+                    <div className="details-column">
+                      <div className="store-detail-row">
+                        <span className="detail-label">ИНН:</span>
+                        <span className="detail-value">{store.inn}</span>
+                      </div>
+                      {store.kpp && (
+                        <div className="store-detail-row">
+                          <span className="detail-label">КПП:</span>
+                          <span className="detail-value">{store.kpp}</span>
+                        </div>
+                      )}
+                      {store.ogrn && (
+                        <div className="store-detail-row">
+                          <span className="detail-label">ОГРН:</span>
+                          <span className="detail-value">{store.ogrn}</span>
+                        </div>
+                      )}
+                    </div>
+                    
+                    <div className="details-column">
+                      <div className="store-detail-row">
+                        <span className="detail-label">Адрес:</span>
+                        <span className="detail-value">{store.address}</span>
+                      </div>
+                      {store.phone && (
+                        <div className="store-detail-row">
+                          <span className="detail-label">Телефон:</span>
+                          <span className="detail-value">{store.phone}</span>
+                        </div>
+                      )}
+                      {store.email && (
+                        <div className="store-detail-row">
+                          <span className="detail-label">Email:</span>
+                          <span className="detail-value">{store.email}</span>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="details-column">
+                      <div className="store-stats">
+                        <div className="stat-item">
+                          <div className="stat-value">{store.products_count || 0}</div>
+                          <div className="stat-label">Товаров</div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                  {store.kpp && (
-                    <div className="store-detail">
-                      <span className="detail-label">КПП:</span>
-                      <span className="detail-value">{store.kpp}</span>
+
+                  {store.description && (
+                    <div className="store-description">
+                      <p>{store.description}</p>
                     </div>
                   )}
-                  <div className="store-detail">
-                    <span className="detail-label">Адрес:</span>
-                    <span className="detail-value">{store.address}</span>
-                  </div>
-                  {store.phone && (
-                    <div className="store-detail">
-                      <span className="detail-label">Телефон:</span>
-                      <span className="detail-value">{store.phone}</span>
-                    </div>
-                  )}
                 </div>
 
-                <div className="store-card__footer">
+                <div className="store-card-wide__actions">
                   <Button
                     text="Товары"
+                    icon="box"
                     type="default"
-                    stylingMode="outlined"
+                    stylingMode="contained"
                     onClick={() => navigate(`/my-stores/${store.id}/products`)}
                   />
                   <Button
                     text="Редактировать"
+                    icon="edit"
                     type="default"
                     stylingMode="outlined"
                     onClick={() => navigate(`/my-stores/${store.id}/edit`)}

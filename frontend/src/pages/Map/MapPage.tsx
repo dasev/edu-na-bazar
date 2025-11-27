@@ -21,8 +21,21 @@ export default function MapPage() {
   const map = useRef<mapboxgl.Map | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [isFiltersOpen, setIsFiltersOpen] = useState(false)
   const { addToCart } = useCartStore()
   const filters = useFiltersStore()
+
+  // Закрытие фильтров по клавише Escape
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isFiltersOpen) {
+        setIsFiltersOpen(false)
+      }
+    }
+    
+    window.addEventListener('keydown', handleEscape)
+    return () => window.removeEventListener('keydown', handleEscape)
+  }, [isFiltersOpen])
 
   useEffect(() => {
     // Если карта уже создана, не создаем заново
@@ -44,6 +57,8 @@ export default function MapPage() {
         container: mapContainer.current,
         style: {
           version: 8,
+          // Добавляем glyphs для поддержки текста
+          glyphs: 'https://fonts.openmaptiles.org/{fontstack}/{range}.pbf',
           sources: {
             'google-tiles': {
               type: 'raster',
@@ -176,7 +191,7 @@ export default function MapPage() {
             filter: ['has', 'point_count'],
             layout: {
               'text-field': '{point_count_abbreviated}',
-              'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
+              'text-font': ['Open Sans Bold', 'Arial Unicode MS Bold'],
               'text-size': 14
             },
             paint: {
@@ -908,12 +923,32 @@ export default function MapPage() {
     }
 
     updateMapData()
+    
+    // Закрываем фильтры на мобильных после применения
+    if (window.innerWidth <= 768) {
+      setIsFiltersOpen(false)
+    }
   }, [filters.category_id, filters.store_id, filters.min_price, filters.max_price, filters.min_rating, filters.in_stock]) // Обновляем при изменении фильтров
 
   return (
     <div className="map-page-container">
+      {/* Кнопка переключения фильтров (только на мобильных) */}
+      <button 
+        className="map-filters-toggle"
+        onClick={() => setIsFiltersOpen(!isFiltersOpen)}
+        aria-label="Фильтры"
+      >
+        {isFiltersOpen ? '✕' : '☰'}
+      </button>
+
+      {/* Оверлей для закрытия фильтров (только на мобильных) */}
+      <div 
+        className={`map-filters-overlay ${isFiltersOpen ? 'visible' : ''}`}
+        onClick={() => setIsFiltersOpen(false)}
+      />
+
       {/* Фильтры */}
-      <aside className="map-page-filters">
+      <aside className={`map-page-filters ${isFiltersOpen ? 'open' : ''}`}>
         <FilterPanel />
       </aside>
       

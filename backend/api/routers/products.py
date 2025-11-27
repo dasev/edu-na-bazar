@@ -48,8 +48,8 @@ async def get_products(
     - **skip, limit**: Пагинация
     """
     
-    # Базовый запрос
-    query = select(Product)
+    # Базовый запрос - только активные товары для каталога
+    query = select(Product).where(Product.status == "active")
     
     # Фильтры
     if category_id:

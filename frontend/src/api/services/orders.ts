@@ -9,7 +9,7 @@ export const ordersApi = {
    * Получить заказы пользователя
    */
   getOrders: async (params?: { status?: string; skip?: number; limit?: number }): Promise<OrderListResponse> => {
-    const response = await apiClient.get('/api/orders', { params })
+    const response = await apiClient.get('/api/orders/', { params }) // Добавлен слеш
     return response.data
   },
 
@@ -17,7 +17,7 @@ export const ordersApi = {
    * Получить заказ по ID
    */
   getOrder: async (id: string): Promise<Order> => {
-    const response = await apiClient.get(`/api/orders/${id}`)
+    const response = await apiClient.get(`/api/orders/${id}/`) // Добавлен слеш
     return response.data
   },
 
@@ -25,15 +25,15 @@ export const ordersApi = {
    * Создать заказ
    */
   createOrder: async (data: OrderCreate): Promise<Order> => {
-    const response = await apiClient.post('/api/orders', data)
+    const response = await apiClient.post('/api/orders/', data) // Добавлен слеш
     return response.data
   },
 
   /**
-   * Обновить статус заказа
+   * Обновить статус заказ а
    */
   updateOrderStatus: async (id: string, status: string): Promise<Order> => {
-    const response = await apiClient.put(`/api/orders/${id}/status`, { status })
+    const response = await apiClient.put(`/api/orders/${id}/status/`, { status }) // Добавлен слеш
     return response.data
   },
 }

@@ -43,20 +43,26 @@ const statusColors: Record<string, string> = {
 
 export const OrdersPage = () => {
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated, token } = useAuthStore();
   const [statusFilter, setStatusFilter] = useState('all');
+  const [isReady, setIsReady] = useState(false);
 
-  // Автоматический редирект на главную если не авторизован
+  // Ждем загрузки токена из persist storage
   useEffect(() => {
-    if (!isAuthenticated) {
-      navigate('/');
-    }
-  }, [isAuthenticated, navigate]);
+    const timer = setTimeout(() => {
+      setIsReady(true);
+      // Редирект если не авторизован после загрузки
+      if (!isAuthenticated && !token) {
+        navigate('/');
+      }
+    }, 100);
+    return () => clearTimeout(timer);
+  }, [isAuthenticated, token, navigate]);
 
   const { data: ordersData, isLoading, error } = useQuery({
     queryKey: ['orders'],
     queryFn: () => ordersApi.getOrders(),
-    enabled: isAuthenticated,
+    enabled: isAuthenticated && isReady, // Запрос только после загрузки токена
   });
 
   if (!isAuthenticated) {

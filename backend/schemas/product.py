@@ -42,7 +42,6 @@ class ProductImageSchema(BaseModel):
     """Схема изображения товара"""
     id: int
     image_url: str
-    is_main: bool = False
     sort_order: int = 0
     
     class Config:
@@ -57,6 +56,7 @@ class ProductResponse(BaseModel):
     price: float
     image: Optional[str]
     category_id: Optional[int]
+    store_owner_id: Optional[int] = None  # ID магазина
     rating: float
     reviews_count: int
     in_stock: bool

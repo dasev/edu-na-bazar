@@ -54,6 +54,7 @@ export interface Store {
   status: 'pending' | 'active' | 'suspended' | 'rejected'
   created_at: string
   updated_at: string
+  products_count?: number
 }
 
 export interface StoreProduct {

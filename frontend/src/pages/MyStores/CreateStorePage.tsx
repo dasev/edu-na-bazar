@@ -3,6 +3,7 @@
  */
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import { Button } from 'devextreme-react/button';
 import { TextBox } from 'devextreme-react/text-box';
 import { TextArea } from 'devextreme-react/text-area';
@@ -38,6 +39,7 @@ interface DaDataResponse {
 
 export const CreateStorePage = () => {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { isAuthenticated } = useAuthStore();
 
   // Автоматический редирект если не авторизован
@@ -141,6 +143,9 @@ export const CreateStorePage = () => {
         kpp: kpp || undefined,
         ogrn: ogrn || undefined,
       });
+
+      // Инвалидируем кэш списка магазинов чтобы обновить данные
+      await queryClient.invalidateQueries({ queryKey: ['my-stores'] });
 
       // Успешно создан - переходим к списку магазинов
       navigate('/my-stores');

@@ -146,6 +146,30 @@ export default function Header() {
                         <span className="user-menu__icon">🏪</span>
                         <span>Мои магазины</span>
                       </div>
+                      {user?.is_moderator && (
+                        <>
+                          <div 
+                            className="user-menu__item user-menu__item--moderator"
+                            onClick={() => {
+                              setUserMenuVisible(false)
+                              navigate('/moderation')
+                            }}
+                          >
+                            <span className="user-menu__icon">⚖️</span>
+                            <span>Модерация</span>
+                          </div>
+                          <div 
+                            className="user-menu__item user-menu__item--admin"
+                            onClick={() => {
+                              setUserMenuVisible(false)
+                              navigate('/admin/users')
+                            }}
+                          >
+                            <span className="user-menu__icon">⚙️</span>
+                            <span>Управление пользователями</span>
+                          </div>
+                        </>
+                      )}
                       <div 
                         className="user-menu__item user-menu__item--danger"
                         onClick={() => {

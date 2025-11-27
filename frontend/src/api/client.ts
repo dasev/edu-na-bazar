@@ -46,12 +46,7 @@ apiClient.interceptors.request.use(
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
-      // Токен истек или невалиден
-      localStorage.removeItem('auth_token')
-      localStorage.removeItem('user')
-      // Можно добавить редирект на страницу входа
-    }
+    // 401 обрабатывается в компонентах
     return Promise.reject(error)
   }
 )

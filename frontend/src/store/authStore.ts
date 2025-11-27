@@ -10,6 +10,7 @@ interface User {
   email?: string
   full_name: string
   is_verified: boolean
+  is_moderator?: boolean
   created_at: string
   last_login?: string
 }

@@ -1,0 +1,36 @@
+# Исключения для Sonar/SolarappScreener
+
+# Скрипты миграции (не production код)
+backend/scripts/
+backend/alembic/
+
+# Тестовые данные
+backend/tests/
+frontend/src/__tests__/
+
+# Зависимости
+node_modules/
+venv/
+.venv/
+__pycache__/
+
+# Сборки
+build/
+dist/
+*.pyc
+*.pyo
+
+# Конфигурация
+.env
+.env.*
+!.env.example
+
+# Логи
+*.log
+logs/
+
+# Временные файлы
+*.tmp
+*.temp
+.DS_Store
+Thumbs.db

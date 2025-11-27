@@ -9,6 +9,7 @@ from database import get_db
 from models.user import User
 from models.store_owner import StoreOwner
 from models.product import Product
+from models.moderation import ModerationLog
 from schemas.product import ProductCreate, ProductUpdate, ProductResponse, ProductListResponse
 from services.jwt_service import JWTService
 
@@ -76,10 +77,13 @@ async def get_store_products(
     store_id: int,
     skip: int = 0,
     limit: int = 20,
+    status: str = "active",  # active, draft, all
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    """Получить все товары магазина"""
+    """Получить товары магазина (по умолчанию только активные)"""
+    print(f"🔍 GET /{store_id}/products вызван! user_id={current_user.id}, status={status}")
+    
     # Проверяем что магазин принадлежит пользователю
     result = await db.execute(
         select(StoreOwner).where(
@@ -97,8 +101,18 @@ async def get_store_products(
             detail="Магазин не найден или не принадлежит вам"
         )
     
-    # Получаем товары магазина
+    # Получаем товары магазина с фильтром по статусу
     query = select(Product).where(Product.store_owner_id == store_id)
+    
+    if status == "active":
+        query = query.where(Product.status == "active")
+    elif status == "draft":
+        query = query.where(Product.status == "draft")
+    elif status == "moderation":
+        query = query.where(Product.status == "moderation")
+    elif status == "rejected":
+        query = query.where(Product.status == "rejected")
+    # если status == "all", не добавляем фильтр
     
     # Подсчет общего количества
     from sqlalchemy import func
@@ -106,21 +120,41 @@ async def get_store_products(
     total_result = await db.execute(count_query)
     total = total_result.scalar()
     
+    print(f"📦 Получение товаров магазина {store_id}")
+    print(f"  Всего товаров: {total}")
+    print(f"  skip={skip}, limit={limit}")
+    
     # Получаем товары с пагинацией
     query = query.offset(skip).limit(limit)
     result = await db.execute(query)
     products = result.scalars().all()
     
-    return ProductListResponse(
-        data=products,
-        meta={
-            "total": total,
-            "skip": skip,
-            "limit": limit,
-            "page": (skip // limit) + 1 if limit > 0 else 1,
-            "pages": (total + limit - 1) // limit if limit > 0 else 1,
-        }
-    )
+    print(f"  Получено товаров: {len(products)}")
+    for p in products:
+        print(f"    - {p.id}: {p.name} (store_owner_id={p.store_owner_id})")
+        print(f"      images: {len(p.images) if p.images else 0} шт")
+        if p.images:
+            for img in p.images:
+                print(f"        * {img.image_url}")
+    
+    try:
+        response = ProductListResponse(
+            data=products,
+            meta={
+                "total": total,
+                "skip": skip,
+                "limit": limit,
+                "page": (skip // limit) + 1 if limit > 0 else 1,
+                "pages": (total + limit - 1) // limit if limit > 0 else 1,
+            }
+        )
+        print(f"✅ Response created successfully")
+        return response
+    except Exception as e:
+        import traceback
+        print(f"❌ Ошибка создания ответа: {e}")
+        traceback.print_exc()
+        raise
 
 
 @router.post("/{store_id}/products", response_model=ProductResponse, status_code=status.HTTP_201_CREATED)
@@ -222,6 +256,139 @@ async def delete_store_product(
     current_user: User = Depends(get_current_user)
 ):
     """Удалить товар магазина"""
+    try:
+        print(f"🗑️ DELETE /{store_id}/products/{product_id} вызван! user_id={current_user.id}")
+        
+        # Проверяем что магазин принадлежит пользователю
+        result = await db.execute(
+            select(StoreOwner).where(
+                and_(
+                    StoreOwner.id == store_id,
+                    StoreOwner.owner_id == current_user.id
+                )
+            )
+        )
+        store = result.scalar_one_or_none()
+        
+        if not store:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Магазин не найден или не принадлежит вам"
+            )
+        
+        print(f"  Магазин найден: {store.name}")
+        
+        # Получаем товар
+        result = await db.execute(
+            select(Product).where(
+                and_(
+                    Product.id == product_id,
+                    Product.store_owner_id == store_id
+                )
+            )
+        )
+        product = result.scalar_one_or_none()
+        
+        if not product:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Товар не найден"
+            )
+        
+        print(f"  Товар найден: {product.name}")
+        
+        # Перемещаем товар в корзину (draft) вместо удаления
+        product.status = "draft"
+        await db.commit()
+        
+        print(f"✅ Товар {product_id} перемещен в корзину")
+    except HTTPException:
+        raise
+    except Exception as e:
+        import traceback
+        print(f"❌ Ошибка удаления товара: {e}")
+        traceback.print_exc()
+        await db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Ошибка удаления товара: {str(e)}"
+        )
+
+
+@router.patch("/{store_id}/products/{product_id}/publish", status_code=status.HTTP_200_OK)
+async def publish_product(
+    store_id: int,
+    product_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Опубликовать товар из корзины (draft -> active)"""
+    try:
+        print(f"📤 PUBLISH /{store_id}/products/{product_id} вызван! user_id={current_user.id}")
+        
+        # Проверяем что магазин принадлежит пользователю
+        result = await db.execute(
+            select(StoreOwner).where(
+                and_(
+                    StoreOwner.id == store_id,
+                    StoreOwner.owner_id == current_user.id
+                )
+            )
+        )
+        store = result.scalar_one_or_none()
+        
+        if not store:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Магазин не найден или не принадлежит вам"
+            )
+        
+        # Получаем товар
+        result = await db.execute(
+            select(Product).where(
+                and_(
+                    Product.id == product_id,
+                    Product.store_owner_id == store_id
+                )
+            )
+        )
+        product = result.scalar_one_or_none()
+        
+        if not product:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Товар не найден"
+            )
+        
+        print(f"  Товар найден: {product.name}, текущий статус: {product.status}")
+        
+        # Отправляем товар на модерацию
+        product.status = "moderation"
+        await db.commit()
+        
+        print(f"✅ Товар {product_id} отправлен на модерацию")
+        
+        return {"message": "Товар опубликован", "product_id": product_id}
+    except HTTPException:
+        raise
+    except Exception as e:
+        import traceback
+        print(f"❌ Ошибка публикации товара: {e}")
+        traceback.print_exc()
+        await db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Ошибка публикации товара: {str(e)}"
+        )
+
+
+@router.get("/{store_id}/moderation-notifications")
+async def get_moderation_notifications(
+    store_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Получить уведомления о модерации товаров магазина"""
     # Проверяем что магазин принадлежит пользователю
     result = await db.execute(
         select(StoreOwner).where(
@@ -239,23 +406,25 @@ async def delete_store_product(
             detail="Магазин не найден или не принадлежит вам"
         )
     
-    # Получаем товар
+    # Получаем последние логи модерации для товаров этого магазина
     result = await db.execute(
-        select(Product).where(
-            and_(
-                Product.id == product_id,
-                Product.store_owner_id == store_id
-            )
-        )
+        select(ModerationLog, Product).join(
+            Product, ModerationLog.product_id == Product.id
+        ).where(
+            Product.store_owner_id == store_id
+        ).order_by(ModerationLog.created_at.desc()).limit(10)
     )
-    product = result.scalar_one_or_none()
+    logs = result.all()
     
-    if not product:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Товар не найден"
-        )
+    notifications = []
+    for log, product in logs:
+        notifications.append({
+            "id": log.id,
+            "product_id": product.id,
+            "product_name": product.name,
+            "action": log.action,
+            "reason": log.reason,
+            "created_at": log.created_at.isoformat()
+        })
     
-    # Удаляем товар
-    await db.delete(product)
-    await db.commit()
+    return {"notifications": notifications}

@@ -95,6 +95,7 @@ class StoreOwnerResponse(BaseModel):
     status: str
     created_at: datetime
     updated_at: datetime
+    products_count: int = 0
     
     class Config:
         from_attributes = True

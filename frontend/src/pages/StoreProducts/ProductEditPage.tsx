@@ -99,10 +99,13 @@ export default function ProductEditPage() {
       return response.data
     },
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ['store-products', storeId] })
-      await queryClient.refetchQueries({ queryKey: ['store-products', storeId] })
       toast.success('Товар создан')
-      navigate(`/my-stores/${storeId}/products`)
+      // Инвалидируем кэш товаров магазина
+      queryClient.invalidateQueries({ queryKey: ['store-products', storeId] })
+      // Небольшая задержка чтобы инвалидация успела сработать
+      setTimeout(() => {
+        navigate(`/my-stores/${storeId}/products`)
+      }, 100)
     },
     onError: () => {
       toast.error('Ошибка при создании товара')
@@ -116,11 +119,14 @@ export default function ProductEditPage() {
       return response.data
     },
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ['store-products', storeId] })
-      await queryClient.invalidateQueries({ queryKey: ['product', productId] })
-      await queryClient.refetchQueries({ queryKey: ['store-products', storeId] })
       toast.success('Товар обновлен')
-      navigate(`/my-stores/${storeId}/products`)
+      // Инвалидируем кэш товаров магазина и конкретного товара
+      queryClient.invalidateQueries({ queryKey: ['store-products', storeId] })
+      queryClient.invalidateQueries({ queryKey: ['product', productId] })
+      // Небольшая задержка чтобы инвалидация успела сработать
+      setTimeout(() => {
+        navigate(`/my-stores/${storeId}/products`)
+      }, 100)
     },
     onError: () => {
       toast.error('Ошибка при обновлении товара')
@@ -203,8 +209,10 @@ export default function ProductEditPage() {
                 accept="image/*"
                 uploadMode="instantly"
                 uploadUrl={`${apiClient.defaults.baseURL}/api/images/upload`}
+                uploadMethod="POST"
+                name="file"
                 uploadHeaders={{
-                  Authorization: `Bearer ${localStorage.getItem('token')}`
+                  Authorization: `Bearer ${localStorage.getItem('auth_token')}`
                 }}
                 onUploaded={(e) => {
                   const response = e.request.response ? JSON.parse(e.request.response) : null
@@ -213,7 +221,8 @@ export default function ProductEditPage() {
                     toast.success('Изображение загружено')
                   }
                 }}
-                onUploadError={() => {
+                onUploadError={(e) => {
+                  console.error('Upload error:', e)
                   toast.error('Ошибка загрузки изображения')
                 }}
               />

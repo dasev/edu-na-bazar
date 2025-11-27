@@ -55,7 +55,8 @@ services:
       MAPBOX_ACCESS_TOKEN: ${MAPBOX_ACCESS_TOKEN:-}
       ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://localhost:3000,http://localhost}
     volumes:
-      - backend_uploads:/app/uploads
+      # Bind mount для доступа к файлам на хосте
+      - ./backend/uploads:/app/uploads
     ports:
       - "8000:8000"
     depends_on:

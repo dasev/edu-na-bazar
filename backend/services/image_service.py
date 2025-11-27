@@ -38,10 +38,15 @@ class ImageService:
             create_thumbnail: Создавать ли миниатюру
             
         Returns:
-            dict: Информация о загруженном изображении
+            dict: Информация о загруженном изображения
         """
+        print(f"📤 Начало загрузки изображения: {file.filename}")
+        print(f"📁 Upload dir: {self.upload_dir}")
+        print(f"📁 Upload dir exists: {self.upload_dir.exists()}")
+        
         # Проверка расширения
         file_ext = Path(file.filename).suffix.lower()
+        print(f"📝 File extension: {file_ext}")
         if file_ext not in self.allowed_extensions:
             raise HTTPException(
                 status_code=400,

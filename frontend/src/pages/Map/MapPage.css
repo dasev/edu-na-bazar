@@ -1,7 +1,12 @@
+/* Убираем скроллбар на странице карты */
+body:has(.map-page-container) {
+  overflow: hidden;
+}
+
 /* Контейнер со страницей и фильтрами */
 .map-page-container {
   position: fixed;
-  top: 70px;
+  top: 70px; /* Высота header на десктопе */
   left: 0;
   right: 0;
   bottom: 0;
@@ -22,6 +27,34 @@
   z-index: 10;
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.8);
+  transition: transform 0.3s ease-in-out;
+}
+
+/* Кнопка переключения фильтров (только на мобильных) */
+.map-filters-toggle {
+  display: none;
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  width: 48px;
+  height: 48px;
+  background: white;
+  border: none;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  cursor: pointer;
+  z-index: 11;
+  font-size: 24px;
+  transition: all 0.2s;
+}
+
+.map-filters-toggle:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+}
+
+.map-filters-toggle:active {
+  transform: scale(0.95);
 }
 
 /* Основная область карты */
@@ -61,6 +94,7 @@
   min-height: 500px;
   position: relative;
   background: #e0e0e0;
+  /* overflow: hidden убран - обрезал маркеры Mapbox */
 }
 
 .map-container canvas {
@@ -189,6 +223,11 @@
 }
 
 @media (max-width: 768px) {
+  /* Увеличиваем отступ сверху для многострочного header */
+  .map-page-container {
+    top: 120px; /* Header + поиск на второй строке (уменьшено для устранения серой полосы) */
+  }
+
   .map-page__header h1 {
     font-size: 32px;
   }
@@ -198,6 +237,78 @@
   }
 
   .map-container {
-    min-height: 400px;
+    min-height: 100%;
+    width: 100%;
+    /* overflow: hidden убран - обрезал маркеры */
+  }
+
+  /* Убираем возможный скроллбар */
+  .map-page {
+    overflow: hidden;
+  }
+
+  /* Фильтры на мобильных */
+  .map-page-filters {
+    top: 0;
+    left: 0;
+    width: 85%;
+    max-width: 320px;
+    height: 100%;
+    max-height: 100%;
+    border-radius: 0 16px 16px 0;
+    transform: translateX(-100%);
+  }
+
+  .map-page-filters.open {
+    transform: translateX(0);
+  }
+
+  /* Показываем кнопку переключения */
+  .map-filters-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    top: 10px; /* Ближе к верху на мобильных */
+    left: 10px;
+  }
+
+  /* Оверлей для закрытия фильтров */
+  .map-filters-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 9;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+  }
+
+  .map-filters-overlay.visible {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  /* Контролы карты на мобильных */
+  .mapboxgl-ctrl-top-right {
+    top: 80px;
+    right: 10px;
+  }
+
+  .mapboxgl-ctrl-group button {
+    width: 32px !important;
+    height: 32px !important;
+  }
+
+  /* Popup на мобильных */
+  .custom-popup .mapboxgl-popup-content {
+    max-width: 280px;
+    padding: 12px;
+  }
+
+  .map-popup h3 {
+    font-size: 14px;
   }
 }

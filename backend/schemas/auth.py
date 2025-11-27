@@ -39,6 +39,7 @@ class UserResponse(BaseModel):
     address: Optional[str]
     is_active: bool
     is_verified: bool
+    is_moderator: bool
     created_at: datetime
     last_login: Optional[datetime]
     

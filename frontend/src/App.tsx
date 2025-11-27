@@ -17,6 +17,9 @@ import StoresPage from './pages/Stores/StoresPage'
 import MapPage from './pages/Map/MapPage'
 import { NotFoundPage } from './pages/NotFound/NotFoundPage'
 import { AboutPage } from './pages/About/AboutPage'
+import ModerationPage from './pages/Moderation/ModerationPage'
+import AdminUsersPage from './pages/Admin/AdminUsersPage'
+import { EditStorePage } from './pages/MyStores/EditStorePage'
 import './App.css'
 
 const queryClient = new QueryClient({
@@ -127,8 +130,11 @@ function App() {
               <Route path="/stores" element={<StoresPage />} />
               <Route path="/my-stores" element={<MyStoresPage />} />
               <Route path="/my-stores/create" element={<CreateStorePage />} />
+              <Route path="/my-stores/:storeId/edit" element={<EditStorePage />} />
               <Route path="/my-stores/:storeId/products" element={<StoreProductsPage />} />
               <Route path="/my-stores/:storeId/products/:productId" element={<ProductEditPage />} />
+              <Route path="/moderation" element={<ModerationPage />} />
+              <Route path="/admin/users" element={<AdminUsersPage />} />
               <Route path="/about" element={<AboutPage />} />
               <Route path="*" element={<NotFoundPage />} />
             </Routes>

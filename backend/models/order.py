@@ -17,45 +17,42 @@ class Order(Base):
     # Пользователь
     user_id = Column(BigInteger, ForeignKey('config.users.id'), nullable=False, index=True)
     
+    # Магазин (если есть)
+    store_id = Column(BigInteger, nullable=True)
+    
+    # Сумма (в БД называется total_amount)
+    total_amount = Column(Double, nullable=False)
+    
     # Статус заказа
+    # pending - ожидает
     # created - создан
     # paid - оплачен
     # processing - в обработке
     # delivering - доставляется
     # completed - выполнен
     # cancelled - отменен
-    status = Column(Text, default="created", nullable=False, index=True)
-    
-    # Сумма
-    total = Column(Double, nullable=False)
+    status = Column(Text, default="pending", nullable=False, index=True)
     
     # Доставка
     delivery_address = Column(Text, nullable=False)
-    delivery_time = Column(DateTime, nullable=True)  # Желаемое время доставки
-    delivery_comment = Column(Text, nullable=True)
+    delivery_phone = Column(Text, nullable=False)  # В БД delivery_phone
     
     # Оплата
     payment_method = Column(Text, nullable=False)  # card, cash, online
-    payment_status = Column(Text, default="pending")  # pending, paid, failed
     
-    # Контакты
-    contact_phone = Column(Text, nullable=False)
-    contact_name = Column(Text, nullable=False)
-    
-    # Комментарий
-    comment = Column(Text, nullable=True)
+    # Комментарий (в БД называется notes)
+    notes = Column(Text, nullable=True)
     
     # Timestamps
     created_at = Column(DateTime, default=datetime.utcnow, index=True)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    completed_at = Column(DateTime, nullable=True)
     
     # Relationships
     user = relationship("User", backref="orders")
     items = relationship("OrderItem", back_populates="order", cascade="all, delete-orphan")
     
     def __repr__(self):
-        return f"<Order {self.id} - {self.status} - {self.total}₽>"
+        return f"<Order {self.id} - {self.status} - {self.total_amount}₽>"
 
 
 class OrderItem(Base):
@@ -75,10 +72,6 @@ class OrderItem(Base):
     quantity = Column(BigInteger, nullable=False)
     price = Column(Double, nullable=False)  # Цена на момент заказа
     
-    # Название товара (на случай если товар удалят)
-    product_name = Column(Text, nullable=False)
-    product_image = Column(Text, nullable=True)
-    
     # Timestamps
     created_at = Column(DateTime, default=datetime.utcnow)
     
@@ -87,7 +80,7 @@ class OrderItem(Base):
     product = relationship("Product", back_populates="order_items")
     
     def __repr__(self):
-        return f"<OrderItem {self.product_name} x{self.quantity}>"
+        return f"<OrderItem product_id={self.product_id} x{self.quantity}>"
     
     @property
     def subtotal(self):

@@ -4,7 +4,7 @@ My Stores Router - управление магазинами пользоват�
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status, Header
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, and_
 from database import get_db
 from models.user import User
 from models.store_owner import StoreOwner
@@ -86,11 +86,68 @@ async def get_my_stores(
     """
     Получить список магазинов текущего пользователя
     """
-    result = await db.execute(
-        select(StoreOwner).where(StoreOwner.owner_id == current_user.id)
-    )
-    stores = result.scalars().all()
-    return stores
+    try:
+        from sqlalchemy import func
+        from models.product import Product
+        
+        print(f"📋 Получение магазинов для user_id={current_user.id}")
+        
+        result = await db.execute(
+            select(StoreOwner).where(StoreOwner.owner_id == current_user.id)
+        )
+        stores = result.scalars().all()
+        
+        print(f"  Найдено магазинов: {len(stores)}")
+        
+        # Добавляем количество товаров для каждого магазина
+        stores_with_count = []
+        for store in stores:
+            print(f"  Обработка магазина {store.id}: {store.name}")
+            # Подсчитываем активные товары
+            active_count_result = await db.execute(
+                select(func.count(Product.id)).where(
+                    and_(
+                        Product.store_owner_id == store.id,
+                        Product.status == "active"
+                    )
+                )
+            )
+            products_count = active_count_result.scalar() or 0
+            print(f"    Активных товаров: {products_count}")
+            
+            # Создаем словарь с данными магазина
+            store_dict = {
+                "id": store.id,
+                "owner_id": store.owner_id,
+                "inn": store.inn,
+                "kpp": store.kpp,
+                "ogrn": store.ogrn,
+                "name": store.name,
+                "legal_name": store.legal_name,
+                "address": store.address,
+                "phone": store.phone,
+                "email": store.email,
+                "description": store.description,
+                "logo": store.logo,
+                "banner": store.banner,
+                "status": store.status,
+                "created_at": store.created_at,
+                "updated_at": store.updated_at,
+                "products_count": products_count
+            }
+            stores_with_count.append(store_dict)
+        
+        print(f"✅ Возвращаем {len(stores_with_count)} магазинов")
+        return stores_with_count
+    
+    except Exception as e:
+        import traceback
+        print(f"❌ Ошибка в get_my_stores: {e}")
+        traceback.print_exc()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Ошибка получения магазинов: {str(e)}"
+        )
 
 
 @router.get("/{store_id}")
@@ -181,64 +238,7 @@ async def delete_store(
     )
 
 
-@router.get("/{store_id}/products")
-async def get_store_products(
-    store_id: str,
-    current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db)
-):
-    """
-    Получить товары магазина
-    """
-    # TODO: Реализовать когда будет модель StoreProduct
-    return []
-
-
-@router.post("/products")
-async def create_product(
-    current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db)
-):
-    """
-    Создать товар в магазине
-    """
-    # TODO: Реализовать когда будет модель StoreProduct
-    raise HTTPException(
-        status_code=status.HTTP_501_NOT_IMPLEMENTED,
-        detail="Функция в разработке"
-    )
-
-
-@router.put("/products/{product_id}")
-async def update_product(
-    product_id: str,
-    current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db)
-):
-    """
-    Обновить товар
-    """
-    # TODO: Реализовать когда будет модель StoreProduct
-    raise HTTPException(
-        status_code=status.HTTP_501_NOT_IMPLEMENTED,
-        detail="Функция в разработке"
-    )
-
-
-@router.delete("/products/{product_id}")
-async def delete_product(
-    product_id: str,
-    current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db)
-):
-    """
-    Удалить товар
-    """
-    # TODO: Реализовать когда будет модель StoreProduct
-    raise HTTPException(
-        status_code=status.HTTP_501_NOT_IMPLEMENTED,
-        detail="Функция в разработке"
-    )
+# Endpoints для товаров перенесены в store_products.py
 
 
 @router.post("/products/{product_id}/images")

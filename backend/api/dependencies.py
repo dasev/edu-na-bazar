@@ -31,10 +31,21 @@ async def get_current_user(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid authentication credentials"
             )
-    except jwt.PyJWTError:
+    except jwt.PyJWTError as e:
+        print(f"❌ JWT decode error: {e}")
+        import traceback
+        traceback.print_exc()
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid authentication credentials"
+        )
+    except Exception as e:
+        print(f"❌ Unexpected error in get_current_user: {e}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Server error: {str(e)}"
         )
     
     result = await db.execute(select(User).where(User.id == int(user_id)))

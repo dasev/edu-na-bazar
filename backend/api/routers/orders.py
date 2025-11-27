@@ -17,34 +17,9 @@ from schemas.order import (
     OrderResponse,
     OrderListResponse,
 )
-from services.jwt_service import JWTService
+from api.dependencies import get_current_user  # Используем стандартный get_current_user
 
 router = APIRouter()
-
-
-async def get_current_user(
-    authorization: str = Depends(lambda: None),
-    db: AsyncSession = Depends(get_db)
-) -> User:
-    """Получить текущего пользователя из токена"""
-    if not authorization or not authorization.startswith("Bearer "):
-        raise HTTPException(status_code=401, detail="Не авторизован")
-    
-    token = authorization.replace("Bearer ", "")
-    user_id = JWTService.get_user_id_from_token(token)
-    
-    if not user_id:
-        raise HTTPException(status_code=401, detail="Неверный токен")
-    
-    result = await db.execute(
-        select(User).where(User.id == user_id)
-    )
-    user = result.scalar_one_or_none()
-    
-    if not user:
-        raise HTTPException(status_code=404, detail="Пользователь не найден")
-    
-    return user
 
 
 @router.get("/", response_model=OrderListResponse)
@@ -56,41 +31,39 @@ async def get_orders(
     db: AsyncSession = Depends(get_db)
 ):
     """Получить заказы пользователя"""
-    query = select(Order).where(Order.user_id == user.id)
-    
-    if status:
-        query = query.where(Order.status == status)
-    
-    # Подсчет
-    count_query = select(func.count()).select_from(query.subquery())
-    total_result = await db.execute(count_query)
-    total = total_result.scalar()
-    
-    # Сортировка и пагинация
-    query = query.order_by(Order.created_at.desc()).offset(skip).limit(limit)
-    
-    result = await db.execute(query)
-    orders = result.scalars().all()
-    
-    # Загружаем items для каждого заказа
-    orders_with_items = []
-    for order in orders:
-        items_result = await db.execute(
-            select(OrderItem).where(OrderItem.order_id == order.id)
+    try:
+        query = select(Order).where(Order.user_id == user.id)
+        
+        if status:
+            query = query.where(Order.status == status)
+        
+        # Подсчет
+        count_query = select(func.count()).select_from(query.subquery())
+        total_result = await db.execute(count_query)
+        total = total_result.scalar()
+        
+        # Сортировка и пагинация
+        query = query.order_by(Order.created_at.desc()).offset(skip).limit(limit)
+        
+        result = await db.execute(query)
+        orders = result.scalars().all()
+        
+        # Пока возвращаем без items для отладки
+        return OrderListResponse(
+            data=orders,
+            meta={
+                "total": total,
+                "skip": skip,
+                "limit": limit,
+                "page": (skip // limit) + 1 if limit > 0 else 1,
+                "pages": (total + limit - 1) // limit if limit > 0 else 1,
+            }
         )
-        order.items = items_result.scalars().all()
-        orders_with_items.append(order)
-    
-    return OrderListResponse(
-        data=orders_with_items,
-        meta={
-            "total": total,
-            "skip": skip,
-            "limit": limit,
-            "page": (skip // limit) + 1 if limit > 0 else 1,
-            "pages": (total + limit - 1) // limit if limit > 0 else 1,
-        }
-    )
+    except Exception as e:
+        print(f"❌ Ошибка в get_orders: {e}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Ошибка получения заказов: {str(e)}")
 
 
 @router.get("/{order_id}", response_model=OrderResponse)
