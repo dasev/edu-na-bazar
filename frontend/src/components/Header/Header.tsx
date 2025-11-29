@@ -13,8 +13,38 @@ export default function Header() {
   const [authModalVisible, setAuthModalVisible] = useState(false)
   const [userMenuVisible, setUserMenuVisible] = useState(false)
   const [searchValue, setSearchValue] = useState('')
-  const { isAuthenticated, user, login, logout } = useAuthStore()
+  const { isAuthenticated, user, login, logout, updateUser } = useAuthStore()
   const { getItemsCount, fetchCart, syncGuestCart } = useCartStore()
+
+  // Загружаем актуальные данные пользователя при монтировании
+  useEffect(() => {
+    const loadUserData = async () => {
+      if (isAuthenticated) {
+        try {
+          const token = localStorage.getItem('auth_token')
+          const response = await fetch('http://localhost:8000/api/users/me', {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+            },
+          })
+          if (response.ok) {
+            const userData = await response.json()
+            if (user) {
+              updateUser({
+                ...user,
+                avatar: userData.avatar,
+                full_name: userData.full_name,
+                email: userData.email,
+              })
+            }
+          }
+        } catch (err) {
+          console.error('Ошибка загрузки данных пользователя:', err)
+        }
+      }
+    }
+    loadUserData()
+  }, [isAuthenticated])
   const { setFilter } = useFiltersStore()
   
   // Загружаем корзину при монтировании если пользователь авторизован
@@ -114,7 +144,15 @@ export default function Header() {
                   title={user?.full_name || user?.phone}
                   onClick={() => setUserMenuVisible(!userMenuVisible)}
                 >
-                  👤
+                  {user?.avatar ? (
+                    <img 
+                      src={user.avatar.startsWith('http') ? user.avatar : `http://localhost:8000${user.avatar}`} 
+                      alt={user?.full_name || 'Аватар'}
+                      className="user-avatar-img"
+                    />
+                  ) : (
+                    '👤'
+                  )}
                 </div>
                 
                 {/* Выпадающее меню */}

@@ -24,7 +24,6 @@ from api.routers import (
     reviews,
     moderation,
     admin,
-    store_orders,
     users
 )
 from database import engine, Base, get_db

@@ -36,6 +36,7 @@ class ReviewResponse(BaseModel):
     
     # Вложенные данные
     user_name: Optional[str] = None
+    user_avatar: Optional[str] = None
     seller_response: Optional[str] = None
     
     class Config:
@@ -87,6 +88,7 @@ class QuestionResponse(BaseModel):
     
     # Вложенные данные
     user_name: Optional[str] = None
+    user_avatar: Optional[str] = None
     answers: List[AnswerResponse] = []
     
     class Config:

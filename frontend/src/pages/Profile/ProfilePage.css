@@ -144,6 +144,18 @@
   font-weight: 500;
 }
 
+.unverified-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 12px;
+  background: #ff9800;
+  color: white;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
 /* Форма */
 .form-group {
   margin-bottom: 20px;

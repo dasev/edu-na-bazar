@@ -61,6 +61,7 @@ async def get_product_reviews(
             "created_at": review.created_at,
             "updated_at": review.updated_at,
             "user_name": (review.user.full_name or review.user.email) if review.user else "Аноним",
+            "user_avatar": review.user.avatar if review.user else None,
             "seller_response": review.responses[0].response_text if review.responses else None
         }
         response_data.append(review_dict)
@@ -263,8 +264,10 @@ async def get_product_questions(
             })
         
         user_display_name = "Аноним"
+        user_avatar = None
         if not question.is_anonymous and question.user:
             user_display_name = question.user.full_name or question.user.email or "Пользователь"
+            user_avatar = question.user.avatar
         
         question_dict = {
             "id": question.id,
@@ -274,6 +277,7 @@ async def get_product_questions(
             "helpful_count": question.helpful_count,
             "created_at": question.created_at,
             "user_name": user_display_name,
+            "user_avatar": user_avatar,
             "answers": answers_data
         }
         response_data.append(question_dict)

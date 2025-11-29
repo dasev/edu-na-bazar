@@ -14,6 +14,7 @@ interface Review {
   advantages: string | null
   disadvantages: string | null
   user_name: string
+  user_avatar: string | null
   created_at: string
   helpful_count: number
   not_helpful_count: number
@@ -25,6 +26,7 @@ interface Question {
   id: number
   question_text: string
   user_name: string
+  user_avatar: string | null
   created_at: string
   answers: Array<{
     id: number
@@ -355,7 +357,16 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
                 <div key={review.id} className="review-item">
                   <div className="review-header">
                     <div className="review-user">
-                      <div className="user-avatar">{review.user_name[0]}</div>
+                      <div className="user-avatar">
+                        {review.user_avatar ? (
+                          <img 
+                            src={review.user_avatar.startsWith('http') ? review.user_avatar : `http://localhost:8000${review.user_avatar}`} 
+                            alt={review.user_name}
+                          />
+                        ) : (
+                          review.user_name[0]
+                        )}
+                      </div>
                       <div>
                         <div className="user-name">{review.user_name}</div>
                         <div className="review-date">{formatDate(review.created_at)}</div>
@@ -440,7 +451,16 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
               {questions.map(question => (
                 <div key={question.id} className="question-item">
                   <div className="question-header">
-                    <div className="user-avatar">{question.user_name[0]}</div>
+                    <div className="user-avatar">
+                      {question.user_avatar ? (
+                        <img 
+                          src={question.user_avatar.startsWith('http') ? question.user_avatar : `http://localhost:8000${question.user_avatar}`} 
+                          alt={question.user_name}
+                        />
+                      ) : (
+                        question.user_name[0]
+                      )}
+                    </div>
                     <div>
                       <div className="user-name">{question.user_name}</div>
                       <div className="question-date">{formatDate(question.created_at)}</div>

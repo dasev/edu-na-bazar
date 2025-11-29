@@ -23,7 +23,9 @@ class User(Base):
     
     # Статус
     is_active = Column(Boolean, default=True)
-    is_verified = Column(Boolean, default=False)  # Подтвержден ли телефон
+    is_verified = Column(Boolean, default=False)  # Подтвержден ли телефон (legacy)
+    is_email_verified = Column(Boolean, default=False)  # Подтвержден ли email
+    is_phone_verified = Column(Boolean, default=False)  # Подтвержден ли телефон
     is_moderator = Column(Boolean, default=False)  # Является ли модератором
     status = Column(Text, default='active')  # active, blocked - для миграции
     

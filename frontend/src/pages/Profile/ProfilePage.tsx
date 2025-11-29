@@ -68,8 +68,8 @@ export const ProfilePage = () => {
       setPhone(userData.phone || '')
       setAddress(userData.address || '')
       setAvatar(userData.avatar || null)
-      setIsEmailVerified(!!userData.email)
-      setIsPhoneVerified(!!userData.phone)
+      setIsEmailVerified(userData.is_email_verified || false)
+      setIsPhoneVerified(userData.is_phone_verified || false)
     }
   }, [userData])
 
@@ -148,9 +148,22 @@ export const ProfilePage = () => {
         body: JSON.stringify({ email, code: emailCode }),
       })
       if (response.ok) {
-        showToast('Email подтвержден', 'success')
+        showToast.success('Email подтвержден')
         setIsEmailVerified(true)
         setShowEmailVerification(false)
+        
+        // Обновляем данные пользователя в authStore сразу
+        const currentUser = useAuthStore.getState().user
+        if (currentUser) {
+          useAuthStore.getState().updateUser({
+            ...currentUser,
+            email: email,
+          })
+        }
+        
+        // Обновляем данные профиля и перезагружаем
+        await queryClient.invalidateQueries({ queryKey: ['user-profile'] })
+        await queryClient.refetchQueries({ queryKey: ['user-profile'] })
       } else {
         const data = await response.json()
         setError(data.detail || 'Неверный код')
@@ -180,7 +193,7 @@ export const ProfilePage = () => {
         body: JSON.stringify({ phone }),
       })
       if (response.ok) {
-        showToast('SMS код отправлен', 'success')
+        showToast.success('SMS код отправлен')
         setShowPhoneVerification(true)
       } else {
         const data = await response.json()
@@ -211,9 +224,22 @@ export const ProfilePage = () => {
         body: JSON.stringify({ phone, code: phoneCode }),
       })
       if (response.ok) {
-        showToast('Телефон подтвержден', 'success')
+        showToast.success('Телефон подтвержден')
         setIsPhoneVerified(true)
         setShowPhoneVerification(false)
+        
+        // Обновляем данные пользователя в authStore сразу
+        const currentUser = useAuthStore.getState().user
+        if (currentUser) {
+          useAuthStore.getState().updateUser({
+            ...currentUser,
+            phone: phone,
+          })
+        }
+        
+        // Обновляем данные профиля и перезагружаем
+        await queryClient.invalidateQueries({ queryKey: ['user-profile'] })
+        await queryClient.refetchQueries({ queryKey: ['user-profile'] })
       } else {
         const data = await response.json()
         setError(data.detail || 'Неверный код')
@@ -256,7 +282,7 @@ export const ProfilePage = () => {
         }
       }
 
-      // Обновление профиля
+      // Обновление профиля (email и phone уже сохранены при верификации)
       const response = await fetch(`${API_URL}/api/users/me`, {
         method: 'PUT',
         headers: {
@@ -265,16 +291,28 @@ export const ProfilePage = () => {
         },
         body: JSON.stringify({
           full_name: fullName,
-          email: isEmailVerified ? email : undefined,
-          phone: isPhoneVerified ? phone : undefined,
           address,
         }),
       })
 
       if (response.ok) {
-        showToast('Профиль обновлен', 'success')
+        showToast.success('Профиль обновлен')
         await queryClient.invalidateQueries({ queryKey: ['user-profile'] })
         await queryClient.refetchQueries({ queryKey: ['user-profile'] })
+        
+        // Обновляем данные пользователя в authStore
+        const updatedUserData: any = await queryClient.fetchQuery({ queryKey: ['user-profile'] })
+        if (updatedUserData) {
+          const currentUser = useAuthStore.getState().user
+          if (currentUser) {
+            useAuthStore.getState().updateUser({
+              ...currentUser,
+              full_name: updatedUserData.full_name || currentUser.full_name,
+              email: updatedUserData.email || currentUser.email,
+              avatar: updatedUserData.avatar,
+            })
+          }
+        }
       } else {
         const data = await response.json()
         setError(data.detail || 'Ошибка обновления профиля')
@@ -367,7 +405,14 @@ export const ProfilePage = () => {
 
           {/* Email */}
           <div className="profile-section">
-            <h2>Email {isEmailVerified && <span className="verified-badge">✓ Подтвержден</span>}</h2>
+            <h2>
+              Email 
+              {isEmailVerified ? (
+                <span className="verified-badge">✓ Подтвержден</span>
+              ) : (
+                <span className="unverified-badge">⚠️ Не подтвержден</span>
+              )}
+            </h2>
             
             <div className="form-group">
               <TextBox
@@ -409,7 +454,14 @@ export const ProfilePage = () => {
 
           {/* Телефон */}
           <div className="profile-section">
-            <h2>Телефон {isPhoneVerified && <span className="verified-badge">✓ Подтвержден</span>}</h2>
+            <h2>
+              Телефон 
+              {isPhoneVerified ? (
+                <span className="verified-badge">✓ Подтвержден</span>
+              ) : (
+                <span className="unverified-badge">⚠️ Не подтвержден</span>
+              )}
+            </h2>
             
             <div className="form-group">
               <TextBox

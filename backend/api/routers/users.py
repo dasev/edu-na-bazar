@@ -48,7 +48,23 @@ async def get_current_user(
             detail="Неверный токен"
         )
     
-    user_id = payload.get("user_id")
+    # user_id хранится в поле "sub" (subject) токена
+    user_id_str = payload.get("sub")
+    if not user_id_str:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Неверный формат токена"
+        )
+    
+    # Преобразуем строку в int
+    try:
+        user_id = int(user_id_str)
+    except (ValueError, TypeError):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Неверный формат user_id"
+        )
+    
     result = await db.execute(select(User).where(User.id == user_id))
     user = result.scalar_one_or_none()
     
@@ -69,6 +85,8 @@ class UserProfileResponse(BaseModel):
     full_name: Optional[str]
     address: Optional[str]
     avatar: Optional[str]
+    is_email_verified: bool = False
+    is_phone_verified: bool = False
     
     class Config:
         from_attributes = True
@@ -155,12 +173,34 @@ async def upload_avatar(
         f.write(contents)
     
     try:
-        optimized_path = ImageService.optimize_image(file_path, max_size=(300, 300))
-        if os.path.exists(file_path):
-            os.remove(file_path)
-        file_path = optimized_path
+        # Обрезаем и оптимизируем аватар до квадрата 300x300
+        from PIL import Image
+        img = Image.open(file_path)
+        
+        # Обрезаем до квадрата (crop to square)
+        width, height = img.size
+        min_dimension = min(width, height)
+        left = (width - min_dimension) // 2
+        top = (height - min_dimension) // 2
+        right = left + min_dimension
+        bottom = top + min_dimension
+        img = img.crop((left, top, right, bottom))
+        
+        # Изменяем размер до 300x300
+        img = img.resize((300, 300), Image.Resampling.LANCZOS)
+        
+        # Конвертируем в RGB если нужно
+        if img.mode in ('RGBA', 'LA', 'P'):
+            background = Image.new('RGB', img.size, (255, 255, 255))
+            if img.mode == 'P':
+                img = img.convert('RGBA')
+            background.paste(img, mask=img.split()[-1] if img.mode in ('RGBA', 'LA') else None)
+            img = background
+        
+        # Сохраняем оптимизированное изображение
+        img.save(file_path, 'JPEG', quality=85, optimize=True)
     except Exception as e:
-        print(f"Ошибка оптимизации: {e}")
+        print(f"Ошибка оптимизации аватара: {e}")
     
     avatar_url = f"/{file_path}"
     user.avatar = avatar_url
@@ -172,15 +212,24 @@ async def upload_avatar(
 @router.post("/send-email-code")
 async def send_email_code(
     data: SendEmailCodeRequest,
-    user: User = Depends(get_current_user)
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
 ):
     """Отправить код подтверждения на email"""
+    from services.email_service import send_email_verification_code
+    
     # Генерируем код
     code = str(random.randint(100000, 999999))
     email_codes[data.email] = code
     
-    # TODO: Отправить email через email_service
-    print(f"📧 Email код для {data.email}: {code}")
+    # Отправляем email
+    try:
+        await send_email_verification_code(data.email, code, user.full_name or "Пользователь")
+        print(f"📧 Email код отправлен на {data.email}: {code}")
+    except Exception as e:
+        print(f"❌ Ошибка отправки email: {e}")
+        # Код все равно сохраняем для тестирования
+        print(f"📧 Код для тестирования {data.email}: {code}")
     
     return {"message": "Код отправлен на email"}
 
@@ -204,8 +253,9 @@ async def verify_email(
             detail="Неверный код"
         )
     
-    # Обновляем email
+    # Обновляем email и статус верификации email
     user.email = data.email
+    user.is_email_verified = True
     await db.commit()
     
     # Удаляем код
@@ -249,8 +299,9 @@ async def verify_phone(
             detail="Неверный код"
         )
     
-    # Обновляем телефон
+    # Обновляем телефон и статус верификации телефона
     user.phone = data.phone
+    user.is_phone_verified = True
     await db.commit()
     
     # Удаляем код

@@ -9,6 +9,7 @@ interface User {
   phone: string
   email?: string
   full_name: string
+  avatar?: string
   is_verified: boolean
   is_moderator?: boolean
   created_at: string

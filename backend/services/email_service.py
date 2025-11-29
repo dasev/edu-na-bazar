@@ -144,3 +144,37 @@ class EmailService:
 
 
 email_service = EmailService()
+
+
+async def send_email_verification_code(email: str, code: str, user_name: str) -> bool:
+    """
+    Отправить код подтверждения на email
+    
+    Args:
+        email: Email получателя
+        code: 6-значный код
+        user_name: Имя пользователя
+    
+    Returns:
+        bool: True если отправлено успешно
+    """
+    if not settings.MAIL_ENABLED:
+        logger.info(f"📧 Email отключен. Код для {email}: {code}")
+        return False
+    
+    try:
+        template_data = {
+            'user_name': user_name,
+            'code': code,
+            'site_name': 'Еду на базар',
+        }
+        
+        return await EmailService.send_email(
+            email_to=email,
+            subject="Код подтверждения email",
+            template_name="email_verification",
+            template_data=template_data
+        )
+    except Exception as e:
+        logger.error(f"❌ Ошибка отправки кода на {email}: {e}")
+        return False
