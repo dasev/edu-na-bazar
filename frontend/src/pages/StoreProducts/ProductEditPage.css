@@ -267,3 +267,43 @@
   content: "💡 ";
   margin-right: 4px;
 }
+
+/* Стили для загрузки изображений */
+.file-input {
+  width: 100%;
+  padding: 12px;
+  border: 2px dashed #667eea;
+  border-radius: 8px;
+  background: #f8f9ff;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.3s;
+}
+
+.file-input:hover:not(:disabled) {
+  background: #f0f2ff;
+  border-color: #5568d3;
+}
+
+.file-input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.upload-progress {
+  margin-top: 8px;
+  padding: 8px;
+  background: #e3f2fd;
+  border-radius: 4px;
+  text-align: center;
+  color: #1976d2;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.field-hint {
+  margin-top: 6px;
+  font-size: 12px;
+  color: #999;
+  font-style: italic;
+}

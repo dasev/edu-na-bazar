@@ -7,14 +7,13 @@ import { TextArea } from 'devextreme-react/text-area'
 import { NumberBox } from 'devextreme-react/number-box'
 import { SelectBox } from 'devextreme-react/select-box'
 import { CheckBox } from 'devextreme-react/check-box'
-import { FileUploader } from 'devextreme-react/file-uploader'
+import { Autocomplete } from 'devextreme-react/autocomplete'
 import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import { apiClient } from '../../api/client'
 import toast from 'react-hot-toast'
 import './ProductEditPage.css'
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
 mapboxgl.accessToken = 'pk.eyJ1Ijoic2VyZ2VqZGFuNDUyIiwiYSI6ImNtaTd0dzQ4ajA0bHkyanIyNWJwa2JrNXYifQ.AWJBOIEEXVb-6AIKrbRXmw'
 
 export default function ProductEditPage() {
@@ -38,6 +37,8 @@ export default function ProductEditPage() {
 
   const [images, setImages] = useState<string[]>([])
   const [selectedImageIndex, setSelectedImageIndex] = useState(0)
+  const [addressSuggestions, setAddressSuggestions] = useState<string[]>([])
+  const [isUploadingImage, setIsUploadingImage] = useState(false)
   const mapContainer = useRef<HTMLDivElement>(null)
   const map = useRef<mapboxgl.Map | null>(null)
   const marker = useRef<mapboxgl.Marker | null>(null)
@@ -181,6 +182,43 @@ export default function ProductEditPage() {
     }
   }, [formData.latitude, formData.longitude])
 
+  // Поиск адресов через DaData
+  const searchAddress = async (query: string) => {
+    if (!query || query.length < 3) {
+      setAddressSuggestions([])
+      return
+    }
+
+    try {
+      const response = await fetch('https://suggestions.dadata.ru/suggestions/api/4_1/rs/suggest/address', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Authorization': 'Token 5f3ff95c0c6a9f6e4a8e0b5c8f3ff95c0c6a9f6e' // Бесплатный тестовый токен
+        },
+        body: JSON.stringify({ query, count: 10 })
+      })
+
+      const data = await response.json()
+      if (data.suggestions) {
+        const addresses = data.suggestions.map((s: any) => s.value)
+        setAddressSuggestions(addresses)
+        
+        // Если есть координаты, обновляем их
+        if (data.suggestions[0]?.data?.geo_lat && data.suggestions[0]?.data?.geo_lon) {
+          const lat = parseFloat(data.suggestions[0].data.geo_lat)
+          const lon = parseFloat(data.suggestions[0].data.geo_lon)
+          if (!isNaN(lat) && !isNaN(lon)) {
+            setFormData(prev => ({ ...prev, latitude: lat, longitude: lon }))
+          }
+        }
+      }
+    } catch (error) {
+      console.error('DaData error:', error)
+    }
+  }
+
   const addImage = (url: string) => {
     if (url && !images.includes(url)) {
       const newImages = [...images, url]
@@ -312,29 +350,40 @@ export default function ProductEditPage() {
               <span>{formData.in_stock ? '✅ В наличии' : '❌ Нет в наличии'}</span>
             </div>
             <div className="add-image-field">
-              <FileUploader
-                selectButtonText="Выбрать изображение"
-                labelText="или перетащите файл сюда"
+              <input
+                type="file"
                 accept="image/*"
-                uploadMode="instantly"
-                uploadUrl={`${API_URL}/api/images/upload`}
-                uploadMethod="POST"
-                name="file"
-                uploadHeaders={{
-                  Authorization: `Bearer ${localStorage.getItem('auth_token')}`
-                }}
-                onUploaded={(e) => {
-                  const response = e.request.response ? JSON.parse(e.request.response) : null
-                  if (response?.data?.url) {
-                    addImage(response.data.url)
-                    toast.success('Изображение загружено')
+                onChange={async (e) => {
+                  const file = e.target.files?.[0]
+                  if (!file) return
+
+                  setIsUploadingImage(true)
+                  const formData = new FormData()
+                  formData.append('file', file)
+
+                  try {
+                    const response = await apiClient.post('/api/images/upload', formData, {
+                      headers: {
+                        'Content-Type': 'multipart/form-data',
+                      },
+                    })
+
+                    if (response.data?.data?.url) {
+                      addImage(response.data.data.url)
+                      toast.success('Изображение загружено')
+                    }
+                  } catch (error: any) {
+                    console.error('Upload error:', error)
+                    toast.error(error.response?.data?.detail || 'Ошибка загрузки')
+                  } finally {
+                    setIsUploadingImage(false)
+                    e.target.value = '' // Очищаем input
                   }
                 }}
-                onUploadError={(e) => {
-                  console.error('Upload error:', e)
-                  toast.error('Ошибка загрузки изображения')
-                }}
+                disabled={isUploadingImage}
+                className="file-input"
               />
+              {isUploadingImage && <div className="upload-progress">Загрузка...</div>}
             </div>
           </div>
         </div>
@@ -410,11 +459,21 @@ export default function ProductEditPage() {
           
           <div className="form-field">
             <label>Адрес (необязательно)</label>
-            <TextBox
+            <Autocomplete
               value={formData.location}
-              onValueChanged={(e) => setFormData({ ...formData, location: e.value })}
-              placeholder="Введите адрес"
+              onValueChanged={(e) => {
+                setFormData({ ...formData, location: e.value })
+                searchAddress(e.value)
+              }}
+              dataSource={addressSuggestions}
+              placeholder="Начните вводить адрес..."
+              minSearchLength={3}
+              searchTimeout={500}
+              onItemClick={(e) => {
+                setFormData({ ...formData, location: e.itemData })
+              }}
             />
+            <div className="field-hint">Используется DaData для подсказок адресов</div>
           </div>
 
           <div className="form-row">
