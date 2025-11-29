@@ -24,7 +24,10 @@ from api.routers import (
     reviews,
     moderation,
     admin,
-    users
+    users,
+    analytics,
+    product_views,
+    events
 )
 from database import engine, Base, get_db
 from config import settings
@@ -197,6 +200,9 @@ app.include_router(reviews.router, prefix="/api")
 app.include_router(moderation.router)
 app.include_router(admin.router)
 app.include_router(users.router)
+app.include_router(analytics.router)
+app.include_router(product_views.router)
+app.include_router(events.router)
 
 # Статические файлы для изображений
 app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")

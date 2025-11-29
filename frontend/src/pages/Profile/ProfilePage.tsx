@@ -418,8 +418,12 @@ export const ProfilePage = () => {
               <TextBox
                 value={email}
                 onValueChanged={(e) => {
-                  setEmail(e.value)
-                  setIsEmailVerified(false)
+                  const newEmail = e.value
+                  setEmail(newEmail)
+                  // Сбрасываем статус только если email реально изменился
+                  if (userData && newEmail !== userData.email) {
+                    setIsEmailVerified(false)
+                  }
                 }}
                 placeholder="email@example.com"
                 disabled={loading || isEmailVerified}
@@ -467,8 +471,12 @@ export const ProfilePage = () => {
               <TextBox
                 value={phone}
                 onValueChanged={(e) => {
-                  setPhone(e.value)
-                  setIsPhoneVerified(false)
+                  const newPhone = e.value
+                  setPhone(newPhone)
+                  // Сбрасываем статус только если телефон реально изменился
+                  if (userData && newPhone !== userData.phone) {
+                    setIsPhoneVerified(false)
+                  }
                 }}
                 placeholder="+7 (999) 123-45-67"
                 disabled={loading || isPhoneVerified}

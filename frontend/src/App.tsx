@@ -23,6 +23,7 @@ import { AboutPage } from './pages/About/AboutPage'
 import ModerationPage from './pages/Moderation/ModerationPage'
 import AdminUsersPage from './pages/Admin/AdminUsersPage'
 import { EditStorePage } from './pages/MyStores/EditStorePage'
+import DashboardPage from './pages/Dashboard/DashboardPage'
 import './App.css'
 
 const queryClient = new QueryClient({
@@ -141,6 +142,7 @@ function App() {
               <Route path="/my-stores/:storeId/products/:productId" element={<ProductEditPage />} />
               <Route path="/moderation" element={<ModerationPage />} />
               <Route path="/admin/users" element={<AdminUsersPage />} />
+              <Route path="/dashboard" element={<DashboardPage />} />
               <Route path="/about" element={<AboutPage />} />
               <Route path="*" element={<NotFoundPage />} />
             </Routes>

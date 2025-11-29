@@ -16,10 +16,10 @@ export default function Header() {
   const { isAuthenticated, user, login, logout, updateUser } = useAuthStore()
   const { getItemsCount, fetchCart, syncGuestCart } = useCartStore()
 
-  // Загружаем актуальные данные пользователя при монтировании
+  // Загружаем актуальные данные пользователя при монтировании (только если нет аватара)
   useEffect(() => {
     const loadUserData = async () => {
-      if (isAuthenticated) {
+      if (isAuthenticated && user && !user.avatar) {
         try {
           const token = localStorage.getItem('auth_token')
           const response = await fetch('http://localhost:8000/api/users/me', {
@@ -29,14 +29,12 @@ export default function Header() {
           })
           if (response.ok) {
             const userData = await response.json()
-            if (user) {
-              updateUser({
-                ...user,
-                avatar: userData.avatar,
-                full_name: userData.full_name,
-                email: userData.email,
-              })
-            }
+            updateUser({
+              ...user,
+              avatar: userData.avatar,
+              full_name: userData.full_name,
+              email: userData.email,
+            })
           }
         } catch (err) {
           console.error('Ошибка загрузки данных пользователя:', err)
@@ -44,7 +42,7 @@ export default function Header() {
       }
     }
     loadUserData()
-  }, [isAuthenticated])
+  }, [isAuthenticated, user?.avatar])
   const { setFilter } = useFiltersStore()
   
   // Загружаем корзину при монтировании если пользователь авторизован
@@ -205,6 +203,16 @@ export default function Header() {
                           >
                             <span className="user-menu__icon">⚖️</span>
                             <span>Модерация</span>
+                          </div>
+                          <div 
+                            className="user-menu__item user-menu__item--admin"
+                            onClick={() => {
+                              setUserMenuVisible(false)
+                              navigate('/dashboard')
+                            }}
+                          >
+                            <span className="user-menu__icon">📊</span>
+                            <span>Дашборды</span>
                           </div>
                           <div 
                             className="user-menu__item user-menu__item--admin"

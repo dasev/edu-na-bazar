@@ -35,10 +35,15 @@ class User(Base):
     last_login = Column(DateTime, nullable=True, index=True)
     
     # Relationships
+    orders = relationship("Order", back_populates="user")
+    cart_items = relationship("CartItem", back_populates="user")
+    store_owners = relationship("StoreOwner", back_populates="owner")
     product_reviews = relationship("ProductReview", back_populates="user")
     product_questions = relationship("ProductQuestion", back_populates="user")
     sent_messages = relationship("Message", foreign_keys="Message.from_user_id", back_populates="from_user")
     received_messages = relationship("Message", foreign_keys="Message.to_user_id", back_populates="to_user")
+    product_views = relationship("ProductView", back_populates="user")
+    events = relationship("UserEvent", back_populates="user")
     
     def __repr__(self):
         return f"<User {self.phone} - {self.full_name}>"

@@ -12,6 +12,8 @@ import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import { productsApi } from '../../api'
 import { useCartStore } from '../../store/cartStore'
+import { apiClient } from '../../api/client'
+import { trackEvent } from '../../utils/analytics'
 import { showToast } from '../../utils/toast'
 import ProductReviews from '../../components/ProductReviews/ProductReviews'
 import './ProductPage.css'
@@ -46,6 +48,21 @@ export default function ProductPage() {
     },
     enabled: !!product?.store_owner_id,
   })
+
+  // Отслеживание просмотра товара
+  useEffect(() => {
+    if (!id) return
+    
+    // Записываем просмотр
+    apiClient.post(`/api/product-views/${id}`)
+      .then(response => {
+        // Сохраняем session_id в cookies если вернулся
+        if (response.data.session_id) {
+          document.cookie = `session_id=${response.data.session_id}; path=/; max-age=31536000`
+        }
+      })
+      .catch(error => console.log('Failed to track view:', error))
+  }, [id])
 
   // Инициализация мини-карты
   useEffect(() => {
@@ -105,6 +122,9 @@ export default function ProductPage() {
 
   const handleAddToCart = async () => {
     if (!product) return
+
+    // Трекаем клик по кнопке "Добавить в корзину"
+    trackEvent('add_to_cart_click', Number(product.id))
 
     setAdding(true)
     try {

@@ -48,8 +48,9 @@ class Order(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
     # Relationships
-    user = relationship("User", backref="orders")
+    user = relationship("User", back_populates="orders")
     items = relationship("OrderItem", back_populates="order", cascade="all, delete-orphan")
+    delivery_route = relationship("DeliveryRoute", back_populates="order", uselist=False, cascade="all, delete-orphan")
     
     def __repr__(self):
         try:

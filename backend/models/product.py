@@ -69,6 +69,7 @@ class Product(Base):
     product_reviews = relationship("ProductReview", back_populates="product", cascade="all, delete-orphan", lazy="noload")
     product_questions = relationship("ProductQuestion", back_populates="product", cascade="all, delete-orphan", lazy="noload")
     messages = relationship("Message", back_populates="product")
+    views = relationship("ProductView", back_populates="product", cascade="all, delete-orphan")
     
     def __repr__(self):
         return f"<Product {self.name} - {self.price}₽>"

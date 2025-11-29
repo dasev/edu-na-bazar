@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Button } from 'devextreme-react/button'
 import { TextBox } from 'devextreme-react/text-box'
+import { trackEvent } from '../../utils/analytics'
 import { TextArea } from 'devextreme-react/text-area'
 import { SelectBox } from 'devextreme-react/select-box'
 import { DateBox } from 'devextreme-react/date-box'
@@ -53,10 +54,18 @@ export default function CheckoutPage() {
       navigate('/')
       return
     }
+    
+    if (!cart || cart.items.length === 0) {
+      navigate('/cart')
+      return
+    }
+    
+    // Трекаем начало оформления заказа
+    trackEvent('checkout_start')
     // Загружаем корзину только один раз при монтировании
     fetchCart()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAuthenticated])
+  }, [isAuthenticated, cart])
   
   // Проверяем пустую корзину отдельно
   useEffect(() => {
@@ -105,6 +114,9 @@ export default function CheckoutPage() {
       }
 
       const order = await ordersApi.createOrder(orderData)
+      
+      // Трекаем завершение оформления заказа
+      trackEvent('checkout_complete', undefined, order.id)
       
       // Очищаем корзину
       await clearCart()

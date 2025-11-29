@@ -57,7 +57,13 @@ export const UserEditForm = ({ visible, user, onHide, onSave, onDelete, onChange
             <SimpleItem dataField="is_active" editorType="dxCheckBox" editorOptions={{ text: 'Пользователь активен' }}>
               <Label visible={false} />
             </SimpleItem>
-            <SimpleItem dataField="is_verified" editorType="dxCheckBox" editorOptions={{ text: 'Телефон верифицирован' }}>
+            <SimpleItem dataField="is_verified" editorType="dxCheckBox" editorOptions={{ text: 'Телефон верифицирован (legacy)' }}>
+              <Label visible={false} />
+            </SimpleItem>
+            <SimpleItem dataField="is_email_verified" editorType="dxCheckBox" editorOptions={{ text: 'Email верифицирован', readOnly: true }}>
+              <Label visible={false} />
+            </SimpleItem>
+            <SimpleItem dataField="is_phone_verified" editorType="dxCheckBox" editorOptions={{ text: 'Телефон верифицирован', readOnly: true }}>
               <Label visible={false} />
             </SimpleItem>
             <SimpleItem dataField="is_moderator" editorType="dxCheckBox" editorOptions={{ text: 'Модератор системы' }}>

@@ -3,7 +3,7 @@ Admin API endpoints - управление пользователями
 """
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func, and_
+from sqlalchemy import select, func, and_, text
 from typing import List, Optional
 
 from database import get_db
@@ -25,6 +25,8 @@ class UserResponse(BaseModel):
     address: Optional[str]
     is_active: bool
     is_verified: bool
+    is_email_verified: bool = False
+    is_phone_verified: bool = False
     is_moderator: bool
     status: str
     created_at: str
@@ -93,8 +95,8 @@ async def get_users(
     
     print(f"📋 Получение пользователей, admin={current_user.id}, skip={skip}, limit={limit}")
     
-    # Базовый запрос
-    query = select(User)
+    # Базовый запрос с явным указанием всех столбцов
+    query = select(User).options()
     
     # Фильтры
     if search:
@@ -144,6 +146,10 @@ async def get_users(
     result = await db.execute(query)
     users = result.scalars().all()
     
+    # Явно обновляем объекты из БД
+    for user in users:
+        await db.refresh(user)
+    
     print(f"  Найдено пользователей: {total}, возвращаем: {len(users)}")
     
     # Добавляем статистику для каждого пользователя
@@ -169,6 +175,15 @@ async def get_users(
         )
         orders_count = orders_result.scalar() or 0
         
+        # Явно получаем значения из БД через raw SQL
+        verification_result = await db.execute(
+            text("SELECT is_email_verified, is_phone_verified FROM config.users WHERE id = :user_id"),
+            {"user_id": user.id}
+        )
+        verification_row = verification_result.fetchone()
+        is_email_verified = verification_row[0] if verification_row else False
+        is_phone_verified = verification_row[1] if verification_row else False
+        
         user_dict = {
             "id": user.id,
             "phone": user.phone,
@@ -177,6 +192,8 @@ async def get_users(
             "address": user.address,
             "is_active": user.is_active,
             "is_verified": user.is_verified,
+            "is_email_verified": is_email_verified,
+            "is_phone_verified": is_phone_verified,
             "is_moderator": user.is_moderator,
             "status": user.status,
             "created_at": user.created_at.isoformat(),
@@ -185,12 +202,15 @@ async def get_users(
             "products_count": products_count,
             "orders_count": orders_count
         }
+        print(f"  User {user.id}: is_email_verified={is_email_verified}, is_phone_verified={is_phone_verified}")
         users_with_stats.append(user_dict)
     
-    return {
+    result = {
         "data": users_with_stats,
         "totalCount": total
     }
+    print(f"  Возвращаем первого пользователя: {users_with_stats[0] if users_with_stats else 'нет пользователей'}")
+    return result
 
 
 @router.get("/stats", response_model=UserStatsResponse)

@@ -28,7 +28,7 @@ class CartItem(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
     # Relationships
-    user = relationship("User", backref="cart_items")
+    user = relationship("User", back_populates="cart_items")
     product = relationship("Product", back_populates="cart_items")
     
     def __repr__(self):

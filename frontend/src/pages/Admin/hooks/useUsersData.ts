@@ -12,6 +12,8 @@ export interface User {
   address?: string
   is_active: boolean
   is_verified: boolean
+  is_email_verified?: boolean
+  is_phone_verified?: boolean
   is_moderator: boolean
   stores_count: number
   products_count: number
