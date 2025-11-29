@@ -56,6 +56,7 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
     advantages: '',
     disadvantages: ''
   })
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({})
   
   // Форма вопроса
   const [showQuestionForm, setShowQuestionForm] = useState(false)
@@ -100,7 +101,11 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
   }
 
   const handleSubmitReview = async () => {
+    // Очищаем предыдущие ошибки
+    setValidationErrors({})
+
     if (!reviewForm.comment.trim()) {
+      setValidationErrors({ comment: 'Напишите отзыв' })
       showToast.error('Напишите отзыв')
       return
     }
@@ -114,10 +119,49 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
       showToast.success('Отзыв добавлен!')
       setShowReviewForm(false)
       setReviewForm({ rating: 5, title: '', comment: '', advantages: '', disadvantages: '' })
+      setValidationErrors({})
       loadReviews()
       loadStats()
     } catch (error: any) {
-      showToast.error(error.response?.data?.detail || 'Ошибка при добавлении отзыва')
+      // Обработка ошибок валидации от backend
+      if (error.response?.data?.error === 'ValidationError' && error.response?.data?.details) {
+        const errors: Record<string, string> = {}
+        const details = error.response.data.details
+        
+        details.forEach((detail: any) => {
+          const field = detail.loc[detail.loc.length - 1] // Последний элемент в loc - это имя поля
+          let message = detail.msg
+          
+          // Переводим сообщения на русский
+          if (detail.type === 'string_too_short') {
+            const minLength = detail.ctx?.min_length || 10
+            message = `Минимальная длина: ${minLength} символов`
+          } else if (detail.type === 'string_too_long') {
+            const maxLength = detail.ctx?.max_length
+            message = `Максимальная длина: ${maxLength} символов`
+          } else if (detail.type === 'value_error') {
+            message = 'Некорректное значение'
+          }
+          
+          errors[field] = message
+        })
+        
+        setValidationErrors(errors)
+        
+        // Показываем первую ошибку
+        const firstError = Object.entries(errors)[0]
+        if (firstError) {
+          const fieldNames: Record<string, string> = {
+            comment: 'Комментарий',
+            title: 'Заголовок',
+            advantages: 'Достоинства',
+            disadvantages: 'Недостатки'
+          }
+          showToast.error(`${fieldNames[firstError[0]] || firstError[0]}: ${firstError[1]}`)
+        }
+      } else {
+        showToast.error(error.response?.data?.detail || 'Ошибка при добавлении отзыва')
+      }
     } finally {
       setLoading(false)
     }
@@ -251,17 +295,25 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
                     value={reviewForm.title}
                     onChange={(e) => setReviewForm({ ...reviewForm, title: e.target.value })}
                     placeholder="Краткое резюме"
+                    className={validationErrors.title ? 'input-error' : ''}
                   />
+                  {validationErrors.title && (
+                    <div className="error-message">{validationErrors.title}</div>
+                  )}
                 </div>
 
                 <div className="form-group">
-                  <label>Комментарий *</label>
+                  <label>Комментарий * <span className="field-hint">(минимум 10 символов)</span></label>
                   <TextArea
                     value={reviewForm.comment}
                     onValueChanged={(e) => setReviewForm({ ...reviewForm, comment: e.value })}
-                    placeholder="Расскажите о товаре"
+                    placeholder="Расскажите о товаре подробнее (минимум 10 символов)"
                     height={100}
+                    className={validationErrors.comment ? 'textarea-error' : ''}
                   />
+                  {validationErrors.comment && (
+                    <div className="error-message">{validationErrors.comment}</div>
+                  )}
                 </div>
 
                 <div className="form-group">
@@ -270,7 +322,11 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
                     value={reviewForm.advantages}
                     onValueChanged={(e) => setReviewForm({ ...reviewForm, advantages: e.value })}
                     height={60}
+                    className={validationErrors.advantages ? 'textarea-error' : ''}
                   />
+                  {validationErrors.advantages && (
+                    <div className="error-message">{validationErrors.advantages}</div>
+                  )}
                 </div>
 
                 <div className="form-group">
@@ -279,7 +335,11 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
                     value={reviewForm.disadvantages}
                     onValueChanged={(e) => setReviewForm({ ...reviewForm, disadvantages: e.value })}
                     height={60}
+                    className={validationErrors.disadvantages ? 'textarea-error' : ''}
                   />
+                  {validationErrors.disadvantages && (
+                    <div className="error-message">{validationErrors.disadvantages}</div>
+                  )}
                 </div>
 
                 <div className="form-actions">
