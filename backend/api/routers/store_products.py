@@ -4,11 +4,12 @@ Store Products Router - управление товарами магазина
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status, Header
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, and_
+from sqlalchemy import select, and_, delete
 from database import get_db
 from models.user import User
 from models.store_owner import StoreOwner
 from models.product import Product
+from models.product_image import ProductImage
 from models.moderation import ModerationLog
 from schemas.product import ProductCreate, ProductUpdate, ProductResponse, ProductListResponse
 from services.jwt_service import JWTService
@@ -184,10 +185,28 @@ async def create_store_product(
     
     # Создаем товар
     product_dict = product_data.model_dump()
+    
+    # Обрабатываем массив изображений отдельно
+    images_urls = product_dict.pop('images', None)
+    
     product_dict['store_owner_id'] = store_id
     product = Product(**product_dict)
     
     db.add(product)
+    await db.flush()  # Получаем ID товара без коммита
+    
+    # Если есть массив изображений, добавляем их в product_images
+    if images_urls and isinstance(images_urls, list):
+        for idx, img_url in enumerate(images_urls):
+            if img_url:  # Пропускаем пустые URL
+                product_image = ProductImage(
+                    product_id=product.id,
+                    image_url=img_url,
+                    is_main=(idx == 0),  # Первое изображение - основное
+                    sort_order=idx
+                )
+                db.add(product_image)
+    
     await db.commit()
     await db.refresh(product)
     
@@ -239,8 +258,31 @@ async def update_store_product(
     
     # Обновляем товар
     update_data = product_data.model_dump(exclude_unset=True)
+    
+    # Обрабатываем массив изображений отдельно
+    images_urls = update_data.pop('images', None)
+    
+    # Обновляем остальные поля
     for field, value in update_data.items():
         setattr(product, field, value)
+    
+    # Если есть массив изображений, обновляем таблицу product_images
+    if images_urls is not None and isinstance(images_urls, list):
+        # Удаляем старые изображения
+        await db.execute(
+            delete(ProductImage).where(ProductImage.product_id == product_id)
+        )
+        
+        # Добавляем новые изображения
+        for idx, img_url in enumerate(images_urls):
+            if img_url:  # Пропускаем пустые URL
+                product_image = ProductImage(
+                    product_id=product_id,
+                    image_url=img_url,
+                    is_main=(idx == 0),  # Первое изображение - основное
+                    sort_order=idx
+                )
+                db.add(product_image)
     
     await db.commit()
     await db.refresh(product)

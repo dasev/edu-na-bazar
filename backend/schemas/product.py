@@ -13,11 +13,15 @@ class ProductCreate(BaseModel):
     description: Optional[str] = None
     price: float = Field(..., gt=0)
     image: Optional[str] = None
+    images: Optional[List[str]] = None  # Массив URL изображений
     category_id: Optional[int] = None
     rating: float = Field(default=0.0, ge=0, le=5)
     reviews_count: int = Field(default=0, ge=0)
     in_stock: bool = True
     unit: str = Field(default="шт", max_length=50)
+    latitude: Optional[float] = None  # Широта
+    longitude: Optional[float] = None  # Долгота
+    location: Optional[str] = None  # Текстовый адрес
 
 
 class ProductUpdate(BaseModel):
@@ -26,15 +30,18 @@ class ProductUpdate(BaseModel):
     description: Optional[str] = None
     price: Optional[float] = Field(None, gt=0)
     image: Optional[str] = None
+    images: Optional[List[str]] = None  # Массив URL изображений
     category_id: Optional[int] = None
     rating: Optional[float] = Field(None, ge=0, le=5)
     reviews_count: Optional[int] = Field(None, ge=0)
     in_stock: Optional[bool] = None
     unit: Optional[str] = Field(None, max_length=50)
     stock_quantity: Optional[int] = Field(None, ge=0)
-    unit: Optional[str] = Field(None, max_length=50)
     meta_title: Optional[str] = Field(None, max_length=255)
     meta_description: Optional[str] = Field(None, max_length=500)
+    latitude: Optional[float] = None  # Широта
+    longitude: Optional[float] = None  # Долгота
+    location: Optional[str] = None  # Текстовый адрес
 
 
 # Response schemas

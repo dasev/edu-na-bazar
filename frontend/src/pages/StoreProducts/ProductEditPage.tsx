@@ -31,7 +31,6 @@ export default function ProductEditPage() {
     category_id: null as number | null,
     in_stock: true,
     unit: 'шт',
-    image: '',
     latitude: null as number | null,
     longitude: null as number | null,
     location: '',
@@ -73,13 +72,26 @@ export default function ProductEditPage() {
         category_id: product.category_id || null,
         in_stock: product.in_stock ?? true,
         unit: product.unit || 'шт',
-        image: product.image || '',
         latitude: product.latitude || null,
         longitude: product.longitude || null,
         location: product.location || '',
       })
+      // Загружаем все изображения товара
+      const productImages: string[] = []
       if (product.image) {
-        setImages([product.image])
+        productImages.push(product.image)
+      }
+      // Добавляем дополнительные изображения, если есть
+      if (product.images && Array.isArray(product.images)) {
+        product.images.forEach((img: any) => {
+          const imgUrl = img.image_url || img.url
+          if (imgUrl && !productImages.includes(imgUrl)) {
+            productImages.push(imgUrl)
+          }
+        })
+      }
+      if (productImages.length > 0) {
+        setImages(productImages)
       }
     }
   }, [product, isNew])
@@ -225,7 +237,6 @@ export default function ProductEditPage() {
     if (url && !images.includes(url)) {
       const newImages = [...images, url]
       setImages(newImages)
-      setFormData({ ...formData, image: url })
       setSelectedImageIndex(newImages.length - 1)
     }
   }
@@ -241,13 +252,7 @@ export default function ProductEditPage() {
   const removeImage = (index: number) => {
     const newImages = images.filter((_, i) => i !== index)
     setImages(newImages)
-    if (newImages.length > 0) {
-      setSelectedImageIndex(0)
-      setFormData({ ...formData, image: newImages[0] })
-    } else {
-      setSelectedImageIndex(0)
-      setFormData({ ...formData, image: '' })
-    }
+    setSelectedImageIndex(newImages.length > 0 ? 0 : 0)
   }
 
   // Создание товара
@@ -299,10 +304,21 @@ export default function ProductEditPage() {
       return
     }
 
+    // Подготавливаем данные для отправки
+    const dataToSend = {
+      ...formData,
+      // Первое изображение как основное
+      image: images.length > 0 ? images[0] : '',
+      // Все изображения
+      images: images
+    }
+
+    console.log('Отправляем данные:', dataToSend)
+
     if (isNew) {
-      createMutation.mutate(formData)
+      createMutation.mutate(dataToSend)
     } else {
-      updateMutation.mutate(formData)
+      updateMutation.mutate(dataToSend)
     }
   }
 
@@ -382,9 +398,21 @@ export default function ProductEditPage() {
                       },
                     })
 
-                    if (response.data?.data?.url) {
-                      addImage(response.data.data.url)
-                      toast.success('Изображение загружено')
+                    console.log('Upload response:', response.data)
+
+                    // API возвращает original_url, optimized_url, thumbnail_url
+                    const imageData = response.data?.data
+                    if (imageData) {
+                      // Используем оптимизированное изображение, если есть, иначе оригинал
+                      const imageUrl = imageData.optimized_url || imageData.original_url || imageData.url
+                      if (imageUrl) {
+                        addImage(imageUrl)
+                        toast.success('Изображение загружено')
+                      } else {
+                        toast.error('URL изображения не найден в ответе')
+                      }
+                    } else {
+                      toast.error('Некорректный ответ от сервера')
                     }
                   } catch (error: any) {
                     console.error('Upload error:', error)
