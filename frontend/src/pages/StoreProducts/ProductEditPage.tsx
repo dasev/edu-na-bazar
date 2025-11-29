@@ -16,6 +16,8 @@ import './ProductEditPage.css'
 
 mapboxgl.accessToken = 'pk.eyJ1Ijoic2VyZ2VqZGFuNDUyIiwiYSI6ImNtaTd0dzQ4ajA0bHkyanIyNWJwa2JrNXYifQ.AWJBOIEEXVb-6AIKrbRXmw'
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+
 export default function ProductEditPage() {
   const { storeId, productId } = useParams<{ storeId: string; productId: string }>()
   const navigate = useNavigate()
@@ -228,6 +230,14 @@ export default function ProductEditPage() {
     }
   }
 
+  const getImageUrl = (url: string) => {
+    if (!url) return ''
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+      return url
+    }
+    return `${API_URL}${url.startsWith('/') ? url : '/' + url}`
+  }
+
   const removeImage = (index: number) => {
     const newImages = images.filter((_, i) => i !== index)
     setImages(newImages)
@@ -322,7 +332,9 @@ export default function ProductEditPage() {
                   className={`thumbnail ${index === selectedImageIndex ? 'active' : ''}`}
                   onClick={() => setSelectedImageIndex(index)}
                 >
-                  <img src={img} alt={`Thumbnail ${index + 1}`} />
+                  <img src={getImageUrl(img)} alt={`Thumbnail ${index + 1}`} onError={(e) => {
+                    (e.target as HTMLImageElement).src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="80" height="80"%3E%3Crect fill="%23f0f0f0" width="80" height="80"/%3E%3Ctext fill="%23999" x="50%25" y="50%25" dominant-baseline="middle" text-anchor="middle" font-size="12"%3EНет фото%3C/text%3E%3C/svg%3E'
+                  }} />
                   <Button
                     icon="trash"
                     onClick={() => removeImage(index)}
@@ -334,7 +346,9 @@ export default function ProductEditPage() {
             </div>
             <div className="main-image">
               {images.length > 0 ? (
-                <img src={images[selectedImageIndex]} alt="Main preview" />
+                <img src={getImageUrl(images[selectedImageIndex])} alt="Main preview" onError={(e) => {
+                  (e.target as HTMLImageElement).src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="500" height="500"%3E%3Crect fill="%23f0f0f0" width="500" height="500"/%3E%3Ctext fill="%23999" x="50%25" y="50%25" dominant-baseline="middle" text-anchor="middle" font-size="24"%3EНет фото%3C/text%3E%3C/svg%3E'
+                }} />
               ) : (
                 <div className="no-preview">📦<br/>Добавьте изображение</div>
               )}
