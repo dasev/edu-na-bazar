@@ -1,0 +1,258 @@
+/* Страница профиля */
+.profile-page {
+  min-height: calc(100vh - 80px);
+  background: linear-gradient(180deg, #f8f9fa 0%, #ffffff 100%);
+  padding: 32px 0;
+}
+
+.profile-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.profile-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.profile-header h1 {
+  font-size: 32px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0;
+}
+
+.profile-content {
+  background: white;
+  border-radius: 12px;
+  padding: 32px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e0e0e0;
+}
+
+/* Аватар */
+.profile-avatar-section {
+  margin-bottom: 32px;
+  padding-bottom: 32px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.profile-avatar-section h2 {
+  font-size: 20px;
+  font-weight: 600;
+  margin: 0 0 20px 0;
+  color: #333;
+}
+
+.avatar-upload {
+  display: flex;
+  justify-content: center;
+}
+
+.avatar-preview {
+  position: relative;
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.avatar-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.avatar-preview .dx-button {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: rgba(255, 255, 255, 0.9) !important;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+}
+
+.avatar-placeholder {
+  width: 150px;
+  height: 150px;
+  border: 2px dashed #d0d0d0;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s;
+  cursor: pointer;
+}
+
+.avatar-placeholder:hover {
+  border-color: #667eea;
+  background: rgba(102, 126, 234, 0.05);
+}
+
+.avatar-upload-label {
+  cursor: pointer;
+  text-align: center;
+  padding: 20px;
+}
+
+.avatar-upload-label .upload-icon {
+  font-size: 48px;
+  margin-bottom: 8px;
+}
+
+.avatar-upload-label .upload-text {
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+}
+
+/* Секции */
+.profile-section {
+  margin-bottom: 32px;
+  padding-bottom: 32px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.profile-section:last-of-type {
+  border-bottom: none;
+}
+
+.profile-section h2 {
+  font-size: 20px;
+  font-weight: 600;
+  margin: 0 0 20px 0;
+  color: #333;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.verified-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 12px;
+  background: #4caf50;
+  color: white;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+/* Форма */
+.form-group {
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-group label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #666;
+}
+
+.form-group .dx-textbox {
+  width: 100%;
+}
+
+.form-group .dx-button {
+  margin-top: 8px;
+  align-self: flex-start;
+}
+
+/* Блок верификации */
+.verification-block {
+  display: flex;
+  gap: 12px;
+  align-items: flex-end;
+  margin-top: 12px;
+  padding: 16px;
+  background: #f8f9fa;
+  border-radius: 8px;
+}
+
+.verification-block .dx-textbox {
+  flex: 1;
+}
+
+/* Ошибка */
+.error-message {
+  padding: 12px 16px;
+  background: #ffebee;
+  border: 1px solid #ef5350;
+  border-radius: 8px;
+  color: #c62828;
+  margin-bottom: 20px;
+  font-size: 14px;
+}
+
+/* Кнопки */
+.profile-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 32px;
+  padding-top: 32px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.profile-actions .dx-button {
+  min-width: 140px;
+}
+
+/* Стили кнопок */
+.profile-page .dx-button.dx-button-default.dx-button-mode-contained {
+  background-color: #667eea !important;
+  border-color: #667eea !important;
+}
+
+.profile-page .dx-button.dx-button-default.dx-button-mode-contained:hover:not(:disabled) {
+  background-color: #5568d3 !important;
+  border-color: #5568d3 !important;
+}
+
+.profile-page .dx-button.dx-button-mode-outlined {
+  color: #667eea !important;
+  border-color: #667eea !important;
+}
+
+.profile-page .dx-button.dx-button-mode-outlined:hover {
+  background-color: rgba(102, 126, 234, 0.1) !important;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+  .profile-content {
+    padding: 20px;
+  }
+
+  .profile-header h1 {
+    font-size: 24px;
+  }
+
+  .avatar-preview,
+  .avatar-placeholder {
+    width: 120px;
+    height: 120px;
+  }
+
+  .verification-block {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .profile-actions {
+    flex-direction: column;
+  }
+
+  .profile-actions .dx-button {
+    width: 100%;
+  }
+}

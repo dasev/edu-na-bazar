@@ -130,6 +130,16 @@ export default function Header() {
                         className="user-menu__item"
                         onClick={() => {
                           setUserMenuVisible(false)
+                          navigate('/profile')
+                        }}
+                      >
+                        <span className="user-menu__icon">👤</span>
+                        <span>Мой профиль</span>
+                      </div>
+                      <div 
+                        className="user-menu__item"
+                        onClick={() => {
+                          setUserMenuVisible(false)
                           navigate('/orders')
                         }}
                       >

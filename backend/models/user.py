@@ -19,6 +19,7 @@ class User(Base):
     email = Column(Text, unique=True, nullable=True, index=True)
     full_name = Column(Text, nullable=False)
     address = Column(Text, nullable=True)  # Адрес доставки
+    avatar = Column(Text, nullable=True)  # URL аватара
     
     # Статус
     is_active = Column(Boolean, default=True)
