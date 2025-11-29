@@ -6,8 +6,8 @@ import toast from 'react-hot-toast';
 export const showToast = {
   success: (message: string) => {
     toast.success(message, {
-      duration: 3000,
-      position: 'top-right',
+      duration: 2000,
+      position: 'bottom-right',
       style: {
         background: '#10B981',
         color: '#fff',
@@ -19,8 +19,8 @@ export const showToast = {
 
   error: (message: string) => {
     toast.error(message, {
-      duration: 4000,
-      position: 'top-right',
+      duration: 3000,
+      position: 'bottom-right',
       style: {
         background: '#EF4444',
         color: '#fff',
@@ -32,7 +32,7 @@ export const showToast = {
 
   loading: (message: string) => {
     return toast.loading(message, {
-      position: 'top-right',
+      position: 'bottom-right',
       style: {
         background: '#3B82F6',
         color: '#fff',
@@ -58,7 +58,7 @@ export const showToast = {
         error: messages.error,
       },
       {
-        position: 'top-right',
+        position: 'bottom-right',
         style: {
           padding: '16px',
           borderRadius: '8px',

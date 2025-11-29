@@ -5,16 +5,20 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { Button } from 'devextreme-react/button'
 import { NumberBox } from 'devextreme-react/number-box'
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Skeleton from 'react-loading-skeleton'
 import 'react-loading-skeleton/dist/skeleton.css'
+import mapboxgl from 'mapbox-gl'
+import 'mapbox-gl/dist/mapbox-gl.css'
 import { productsApi } from '../../api'
 import { useCartStore } from '../../store/cartStore'
 import { showToast } from '../../utils/toast'
 import ProductReviews from '../../components/ProductReviews/ProductReviews'
 import './ProductPage.css'
+import axios from 'axios'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+mapboxgl.accessToken = 'pk.eyJ1Ijoic2VyZ2VqZGFuNDUyIiwiYSI6ImNtaTd0dzQ4ajA0bHkyanIyNWJwa2JrNXYifQ.AWJBOIEEXVb-6AIKrbRXmw'
 
 export default function ProductPage() {
   const { id } = useParams<{ id: string }>()
@@ -24,12 +28,47 @@ export default function ProductPage() {
   const [adding, setAdding] = useState(false)
   const [selectedImage, setSelectedImage] = useState<string | null>(null)
   const [isImageModalOpen, setIsImageModalOpen] = useState(false)
+  const mapContainer = useRef<HTMLDivElement>(null)
+  const map = useRef<mapboxgl.Map | null>(null)
 
   const { data: product, isLoading, error } = useQuery({
     queryKey: ['product', id],
     queryFn: () => productsApi.getProduct(id!),
     enabled: !!id,
   })
+
+  // Запрос данных о магазине
+  const { data: storeOwner } = useQuery({
+    queryKey: ['store-owner', product?.store_owner_id],
+    queryFn: async () => {
+      const response = await axios.get(`${API_URL}/api/store-owners/${product?.store_owner_id}`)
+      return response.data
+    },
+    enabled: !!product?.store_owner_id,
+  })
+
+  // Инициализация мини-карты
+  useEffect(() => {
+    if (!product?.latitude || !product?.longitude || !mapContainer.current || map.current) return
+
+    map.current = new mapboxgl.Map({
+      container: mapContainer.current,
+      style: 'mapbox://styles/mapbox/streets-v12',
+      center: [product.longitude, product.latitude],
+      zoom: 13,
+      interactive: false // Отключаем взаимодействие для мини-карты
+    })
+
+    // Добавляем маркер
+    new mapboxgl.Marker({ color: '#667eea' })
+      .setLngLat([product.longitude, product.latitude])
+      .addTo(map.current)
+
+    return () => {
+      map.current?.remove()
+      map.current = null
+    }
+  }, [product?.latitude, product?.longitude])
 
   const handleAddToCart = async () => {
     if (!product) return
@@ -242,6 +281,85 @@ export default function ProductPage() {
               </div>
             )}
           </div>
+        </div>
+
+        {/* Информация о продавце и местоположении */}
+        <div className="product-page__seller-section">
+          <div className="product-page__seller-info">
+            <h3>🏪 Продавец</h3>
+            {storeOwner ? (
+              <div className="seller-card">
+                <div className="seller-card__header">
+                  {storeOwner.logo && (
+                    <img 
+                      src={storeOwner.logo.startsWith('http') ? storeOwner.logo : `${API_URL}${storeOwner.logo}`} 
+                      alt={storeOwner.name}
+                      className="seller-card__logo"
+                    />
+                  )}
+                  <div className="seller-card__info">
+                    <h4>{storeOwner.name}</h4>
+                    {storeOwner.legal_name && (
+                      <p className="seller-card__legal-name">{storeOwner.legal_name}</p>
+                    )}
+                    {storeOwner.inn && (
+                      <p className="seller-card__inn">ИНН: {storeOwner.inn}</p>
+                    )}
+                  </div>
+                </div>
+                
+                {storeOwner.description && (
+                  <p className="seller-card__description">{storeOwner.description}</p>
+                )}
+                
+                <div className="seller-card__contacts">
+                  {storeOwner.phone && (
+                    <div className="contact-item">
+                      <span className="contact-icon">📞</span>
+                      <a href={`tel:${storeOwner.phone}`}>{storeOwner.phone}</a>
+                    </div>
+                  )}
+                  {storeOwner.email && (
+                    <div className="contact-item">
+                      <span className="contact-icon">✉️</span>
+                      <a href={`mailto:${storeOwner.email}`}>{storeOwner.email}</a>
+                    </div>
+                  )}
+                  {storeOwner.address && (
+                    <div className="contact-item">
+                      <span className="contact-icon">📍</span>
+                      <span>{storeOwner.address}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <Skeleton height={200} />
+            )}
+          </div>
+
+          {/* Местоположение товара */}
+          {(product.location || (product.latitude && product.longitude)) && (
+            <div className="product-page__location">
+              <h3>📍 Местоположение товара</h3>
+              
+              {product.location && (
+                <div className="location-address">
+                  <p>{product.location}</p>
+                </div>
+              )}
+
+              {product.latitude && product.longitude && (
+                <div className="location-map-container">
+                  <div 
+                    ref={mapContainer} 
+                    className="location-mini-map"
+                    style={{ borderRadius: '12px', overflow: 'hidden' }}
+                  />
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Отзывы и вопросы */}

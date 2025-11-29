@@ -57,8 +57,8 @@ export default function MapPage() {
         container: mapContainer.current,
         style: {
           version: 8,
-          // Добавляем glyphs для поддержки текста
-          glyphs: 'https://fonts.openmaptiles.org/{fontstack}/{range}.pbf',
+          // Используем Mapbox glyphs (работает с токеном)
+          glyphs: 'mapbox://fonts/mapbox/{fontstack}/{range}.pbf',
           sources: {
             'google-tiles': {
               type: 'raster',
@@ -199,82 +199,114 @@ export default function MapPage() {
             }
           })
 
-          // Слой для отдельных товаров (не в кластере)
-          mapInstance.addLayer({
-            id: 'products-layer',
-            type: 'circle',
-            source: 'products',
-            filter: ['!', ['has', 'point_count']],
-            paint: {
-              'circle-radius': 20,
-              'circle-color': '#667eea',
-              'circle-stroke-width': 3,
-              'circle-stroke-color': '#ffffff',
-              'circle-opacity': 1
-            }
-          })
-
-          // Слой для выделенного товара (темнее)
-          mapInstance.addLayer({
-            id: 'products-selected',
-            type: 'circle',
-            source: 'products',
-            filter: ['==', ['get', 'id'], -1], // Изначально ничего не выделено
-            paint: {
-              'circle-radius': 22,
-              'circle-color': '#4a5fc1', // Темнее основного цвета
-              'circle-stroke-width': 4,
-              'circle-stroke-color': '#ffffff',
-              'circle-opacity': 1
-            }
-          })
-
-          // Храним маркеры с иконками для обновления при зуме
-          const iconMarkers: mapboxgl.Marker[] = []
-          
-          // Функция для обновления иконок
-          const updateIcons = () => {
-            // Удаляем старые маркеры
-            iconMarkers.forEach(marker => marker.remove())
-            iconMarkers.length = 0
-            
-            // Получаем видимые некластеризованные точки
-            const features = mapInstance.querySourceFeatures('products', {
-              sourceLayer: undefined
-            })
-            
-            features.forEach((feature: any) => {
-              // Пропускаем кластеры
-              if (feature.properties.cluster) return
-              
-              const props = feature.properties
-              const coords = feature.geometry.coordinates
-              
-              // Создаем элемент с эмодзи
-              const el = document.createElement('div')
-              el.className = 'product-icon-marker'
-              el.style.cssText = `
-                font-size: 22px;
-                pointer-events: none;
-                user-select: none;
-              `
-              el.textContent = props.category_icon
-              
-              // Добавляем маркер
-              const marker = new mapboxgl.Marker({
-                element: el,
-                anchor: 'center'
-              })
-                .setLngLat(coords)
-                .addTo(mapInstance)
-              
-              iconMarkers.push(marker)
-            })
+          // Загружаем иконки категорий как изображения в Mapbox
+          const categoryIcons: { [key: string]: string } = {
+            '🥬': 'vegetables',      // Овощи и фрукты
+            '🥩': 'meat',            // Мясо, птица, рыба
+            '🥛': 'milk',            // Молочные продукты
+            '🌾': 'grain',           // Зерно
+            '🍯': 'honey',           // Мед
+            '🥫': 'canned',          // Готовые продукты
+            '🌽': 'feed',            // Корма и добавки
+            '🌱': 'fertilizer',      // Агротовары и удобрения
+            '🚜': 'equipment',       // Оборудование и техника
+            '⚙️': 'services',        // Услуги
+            '🥚': 'eggs',            // Яйца
+            '🌿': 'plants'           // Саженцы и семена
           }
           
-          // Обновляем иконки при изменении зума или перемещении
-          mapInstance.on('render', updateIcons)
-          updateIcons() // Первоначальное добавление
+          // Функция для создания SVG иконки с эмодзи
+          const createEmojiIcon = (emoji: string, size = 64) => {
+            const svg = `
+              <svg width="${size}" height="${size}" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="${size/2}" cy="${size/2}" r="${size/2 - 4}" fill="#667eea" stroke="white" stroke-width="4"/>
+                <text x="50%" y="50%" text-anchor="middle" dy=".35em" font-size="${size * 0.5}" fill="white">${emoji}</text>
+              </svg>
+            `
+            return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg)
+          }
+          
+          // Загружаем все иконки
+          const loadIcons = async () => {
+            const promises = Object.entries(categoryIcons).map(([emoji, name]) => {
+              return new Promise<void>((resolve, reject) => {
+                const img = new Image()
+                img.onload = () => {
+                  if (!mapInstance.hasImage(name)) {
+                    mapInstance.addImage(name, img as any)
+                  }
+                  resolve()
+                }
+                img.onerror = reject
+                img.src = createEmojiIcon(emoji)
+              })
+            })
+            
+            await Promise.all(promises)
+            console.log('✅ Иконки категорий загружены')
+          }
+          
+          await loadIcons()
+
+          // Слой для отдельных товаров - используем symbol с иконками
+          mapInstance.addLayer({
+            id: 'products-layer',
+            type: 'symbol',
+            source: 'products',
+            filter: ['!', ['has', 'point_count']],
+            layout: {
+              'icon-image': [
+                'match',
+                ['get', 'category_icon'],
+                '🥬', 'vegetables',
+                '🥩', 'meat',
+                '🥛', 'milk',
+                '🌾', 'grain',
+                '🍯', 'honey',
+                '🥫', 'canned',
+                '🌽', 'feed',
+                '🌱', 'fertilizer',
+                '🚜', 'equipment',
+                '⚙️', 'services',
+                '🥚', 'eggs',
+                '🌿', 'plants',
+                'vegetables' // default
+              ],
+              'icon-size': 0.6,
+              'icon-allow-overlap': true,
+              'icon-ignore-placement': true
+            }
+          })
+
+          // Слой для выделенного товара (увеличенная иконка)
+          mapInstance.addLayer({
+            id: 'products-selected',
+            type: 'symbol',
+            source: 'products',
+            filter: ['==', ['get', 'id'], -1], // Изначально ничего не выделено
+            layout: {
+              'icon-image': [
+                'match',
+                ['get', 'category_icon'],
+                '🥬', 'vegetables',
+                '🥩', 'meat',
+                '🥛', 'milk',
+                '🌾', 'grain',
+                '🍯', 'honey',
+                '🥫', 'canned',
+                '🌽', 'feed',
+                '🌱', 'fertilizer',
+                '🚜', 'equipment',
+                '⚙️', 'services',
+                '🥚', 'eggs',
+                '🌿', 'plants',
+                'vegetables' // default
+              ],
+              'icon-size': 0.75, // Больше чем обычные
+              'icon-allow-overlap': true,
+              'icon-ignore-placement': true
+            }
+          })
 
           // Клик на кластер - увеличиваем зум
           mapInstance.on('click', 'clusters', (e) => {

@@ -26,11 +26,13 @@ export interface Product {
   image?: string
   images?: string[]
   category_id: string
+  store_owner_id?: number
   rating: number
   reviews_count: number
   in_stock: boolean
   stock_quantity: number
   unit: string
+  location?: string
   meta_title?: string
   meta_description?: string
   created_at: string
