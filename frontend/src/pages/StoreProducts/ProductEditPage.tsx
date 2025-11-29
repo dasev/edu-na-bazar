@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Button } from 'devextreme-react/button'
 import { TextBox } from 'devextreme-react/text-box'
 import { TextArea } from 'devextreme-react/text-area'
@@ -8,9 +8,14 @@ import { NumberBox } from 'devextreme-react/number-box'
 import { SelectBox } from 'devextreme-react/select-box'
 import { CheckBox } from 'devextreme-react/check-box'
 import { FileUploader } from 'devextreme-react/file-uploader'
+import mapboxgl from 'mapbox-gl'
+import 'mapbox-gl/dist/mapbox-gl.css'
 import { apiClient } from '../../api/client'
 import toast from 'react-hot-toast'
 import './ProductEditPage.css'
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+mapboxgl.accessToken = 'pk.eyJ1Ijoic2VyZ2VqZGFuNDUyIiwiYSI6ImNtaTd0dzQ4ajA0bHkyanIyNWJwa2JrNXYifQ.AWJBOIEEXVb-6AIKrbRXmw'
 
 export default function ProductEditPage() {
   const { storeId, productId } = useParams<{ storeId: string; productId: string }>()
@@ -25,13 +30,17 @@ export default function ProductEditPage() {
     category_id: null as number | null,
     in_stock: true,
     unit: 'шт',
-    rating: 0,
-    reviews_count: 0,
     image: '',
+    latitude: null as number | null,
+    longitude: null as number | null,
+    location: '',
   })
 
   const [images, setImages] = useState<string[]>([])
   const [selectedImageIndex, setSelectedImageIndex] = useState(0)
+  const mapContainer = useRef<HTMLDivElement>(null)
+  const map = useRef<mapboxgl.Map | null>(null)
+  const marker = useRef<mapboxgl.Marker | null>(null)
 
   // Получаем товар если редактируем
   const { data: product, isLoading } = useQuery({
@@ -61,15 +70,116 @@ export default function ProductEditPage() {
         category_id: product.category_id || null,
         in_stock: product.in_stock ?? true,
         unit: product.unit || 'шт',
-        rating: product.rating || 0,
-        reviews_count: product.reviews_count || 0,
         image: product.image || '',
+        latitude: product.latitude || null,
+        longitude: product.longitude || null,
+        location: product.location || '',
       })
       if (product.image) {
         setImages([product.image])
       }
     }
   }, [product, isNew])
+
+  // Инициализация карты
+  useEffect(() => {
+    if (!mapContainer.current || map.current) return
+
+    map.current = new mapboxgl.Map({
+      container: mapContainer.current,
+      style: {
+        version: 8,
+        glyphs: 'mapbox://fonts/mapbox/{fontstack}/{range}.pbf',
+        sources: {
+          'google-tiles': {
+            type: 'raster',
+            tiles: [
+              'https://mt0.google.com/maps/vt?lyrs=m@189&gl=cn&x={x}&y={y}&z={z}',
+              'https://mt1.google.com/maps/vt?lyrs=m@189&gl=cn&x={x}&y={y}&z={z}',
+              'https://mt2.google.com/maps/vt?lyrs=m@189&gl=cn&x={x}&y={y}&z={z}',
+              'https://mt3.google.com/maps/vt?lyrs=m@189&gl=cn&x={x}&y={y}&z={z}'
+            ],
+            tileSize: 256,
+            attribution: ''
+          }
+        },
+        layers: [
+          {
+            id: 'google-tiles-layer',
+            type: 'raster',
+            source: 'google-tiles',
+            minzoom: 0,
+            maxzoom: 22
+          }
+        ]
+      },
+      center: [formData.longitude || 37.6173, formData.latitude || 55.7558],
+      zoom: formData.latitude ? 13 : 10,
+      attributionControl: false
+    })
+
+    // Клик по карте для установки маркера
+    map.current.on('click', (e) => {
+      const { lng, lat } = e.lngLat
+      setFormData(prev => ({
+        ...prev,
+        latitude: lat,
+        longitude: lng
+      }))
+      
+      // Обновляем маркер
+      if (marker.current) {
+        marker.current.setLngLat([lng, lat])
+      } else {
+        marker.current = new mapboxgl.Marker({ color: '#667eea', draggable: true })
+          .setLngLat([lng, lat])
+          .addTo(map.current!)
+        
+        // Обработка перетаскивания маркера
+        marker.current.on('dragend', () => {
+          const lngLat = marker.current!.getLngLat()
+          setFormData(prev => ({
+            ...prev,
+            latitude: lngLat.lat,
+            longitude: lngLat.lng
+          }))
+        })
+      }
+    })
+
+    return () => {
+      map.current?.remove()
+      map.current = null
+    }
+  }, [])
+
+  // Обновление маркера при изменении координат
+  useEffect(() => {
+    if (!map.current) return
+
+    if (formData.latitude && formData.longitude) {
+      if (marker.current) {
+        marker.current.setLngLat([formData.longitude, formData.latitude])
+      } else {
+        marker.current = new mapboxgl.Marker({ color: '#667eea', draggable: true })
+          .setLngLat([formData.longitude, formData.latitude])
+          .addTo(map.current)
+        
+        marker.current.on('dragend', () => {
+          const lngLat = marker.current!.getLngLat()
+          setFormData(prev => ({
+            ...prev,
+            latitude: lngLat.lat,
+            longitude: lngLat.lng
+          }))
+        })
+      }
+      map.current.flyTo({
+        center: [formData.longitude, formData.latitude],
+        zoom: 13
+      })
+    }
+  }, [formData.latitude, formData.longitude])
 
   const addImage = (url: string) => {
     if (url && !images.includes(url)) {
@@ -199,7 +309,6 @@ export default function ProductEditPage() {
               <p className="preview-description">{formData.description}</p>
             )}
             <div className="preview-meta">
-              <span>⭐ {formData.rating || 0}</span>
               <span>{formData.in_stock ? '✅ В наличии' : '❌ Нет в наличии'}</span>
             </div>
             <div className="add-image-field">
@@ -208,7 +317,7 @@ export default function ProductEditPage() {
                 labelText="или перетащите файл сюда"
                 accept="image/*"
                 uploadMode="instantly"
-                uploadUrl={`${apiClient.defaults.baseURL}/api/images/upload`}
+                uploadUrl={`${API_URL}/api/images/upload`}
                 uploadMethod="POST"
                 name="file"
                 uploadHeaders={{
@@ -287,15 +396,6 @@ export default function ProductEditPage() {
           </div>
 
           <div className="form-field">
-            <label>Изображение (URL)</label>
-            <TextBox
-              value={formData.image}
-              onValueChanged={(e) => setFormData({ ...formData, image: e.value })}
-              placeholder="https://example.com/image.jpg"
-            />
-          </div>
-
-          <div className="form-field">
             <CheckBox
               value={formData.in_stock}
               onValueChanged={(e) => setFormData({ ...formData, in_stock: e.value })}
@@ -305,30 +405,41 @@ export default function ProductEditPage() {
         </div>
 
         <div className="form-section">
-          <h2>Дополнительно</h2>
+          <h2>Местоположение товара</h2>
+          <p className="section-hint">Кликните на карту, чтобы указать местоположение товара. Маркер можно перетаскивать.</p>
           
+          <div className="form-field">
+            <label>Адрес (необязательно)</label>
+            <TextBox
+              value={formData.location}
+              onValueChanged={(e) => setFormData({ ...formData, location: e.value })}
+              placeholder="Введите адрес"
+            />
+          </div>
+
           <div className="form-row">
             <div className="form-field">
-              <label>Рейтинг</label>
+              <label>Широта</label>
               <NumberBox
-                value={formData.rating}
-                onValueChanged={(e) => setFormData({ ...formData, rating: e.value })}
-                min={0}
-                max={5}
-                step={0.1}
-                format="#0.0"
+                value={formData.latitude ?? undefined}
+                onValueChanged={(e) => setFormData({ ...formData, latitude: e.value ?? null })}
+                format="#0.######"
+                placeholder="55.7558"
               />
             </div>
 
             <div className="form-field">
-              <label>Количество отзывов</label>
+              <label>Долгота</label>
               <NumberBox
-                value={formData.reviews_count}
-                onValueChanged={(e) => setFormData({ ...formData, reviews_count: e.value })}
-                min={0}
+                value={formData.longitude ?? undefined}
+                onValueChanged={(e) => setFormData({ ...formData, longitude: e.value ?? null })}
+                format="#0.######"
+                placeholder="37.6173"
               />
             </div>
           </div>
+
+          <div className="map-container" ref={mapContainer} style={{ height: '400px', borderRadius: '12px', marginTop: '16px' }} />
         </div>
 
         <div className="form-actions">

@@ -239,3 +239,31 @@
     width: 100%;
   }
 }
+
+/* Стили для карты */
+.map-container {
+  border: 2px solid #e0e0e0;
+  overflow: hidden;
+}
+
+.map-container .mapboxgl-ctrl-logo,
+.map-container .mapboxgl-ctrl-attrib,
+.map-container .mapboxgl-compact {
+  display: none !important;
+}
+
+.section-hint {
+  margin: 0 0 16px 0;
+  padding: 12px;
+  background: #f0f7ff;
+  border-left: 4px solid #667eea;
+  border-radius: 4px;
+  font-size: 14px;
+  color: #666;
+  line-height: 1.5;
+}
+
+.section-hint::before {
+  content: "💡 ";
+  margin-right: 4px;
+}
