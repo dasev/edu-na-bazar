@@ -57,6 +57,7 @@
   border-radius: 8px;
   padding: 20px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  overflow: visible;
 }
 
 .order-header {
@@ -117,9 +118,10 @@
 
 .order-items {
   margin: 16px 0;
-  padding: 16px;
+  padding: 16px 16px 24px 16px;
   background: #f9f9f9;
   border-radius: 8px;
+  overflow: visible;
 }
 
 .order-items h4 {
@@ -133,6 +135,7 @@
   gap: 12px;
   align-items: center;
   padding: 12px;
+  margin: 0 -4px 8px -4px;
   border-bottom: 1px solid #eee;
   border-radius: 8px;
   transition: all 0.2s;
@@ -140,8 +143,9 @@
 
 .order-item:hover {
   background: white;
-  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.1);
+  box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.5);
   transform: translateX(4px);
+  border-color: transparent;
 }
 
 .order-item:last-child {

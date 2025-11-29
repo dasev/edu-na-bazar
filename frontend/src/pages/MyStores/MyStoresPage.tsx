@@ -88,7 +88,11 @@ export const MyStoresPage = () => {
               <div key={store.id} className="store-card-wide">
                 <div className="store-card-wide__left">
                   {store.logo ? (
-                    <img src={store.logo} alt={store.name} className="store-logo-large" />
+                    <img 
+                      src={store.logo.startsWith('http') ? store.logo : `http://localhost:8000${store.logo}`} 
+                      alt={store.name} 
+                      className="store-logo-large" 
+                    />
                   ) : (
                     <div className="store-logo-placeholder-large">🏪</div>
                   )}

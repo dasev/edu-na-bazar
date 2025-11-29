@@ -2,7 +2,7 @@
 My Stores Router - управление магазинами пользователя
 """
 from typing import List, Optional
-from fastapi import APIRouter, Depends, HTTPException, status, Header, Query
+from fastapi import APIRouter, Depends, HTTPException, status, Header, Query, UploadFile, File
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, and_, func
 from sqlalchemy.orm import selectinload
@@ -14,6 +14,9 @@ from models.product import Product
 from schemas.store_owner import StoreOwnerCreate, StoreOwnerResponse, StoreOwnerUpdate
 from schemas.order import OrderResponse, OrderListResponse, OrderUpdateStatus
 from services.jwt_service import JWTService
+from services.image_service import ImageService
+import os
+import uuid
 
 router = APIRouter(prefix="/api/my-stores", tags=["my-stores"])
 
@@ -499,3 +502,67 @@ async def update_store_order_status(
     }
     
     return order_dict
+
+
+@router.post("/{store_id}/logo")
+async def upload_store_logo(
+    store_id: int,
+    file: UploadFile = File(...),
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """Загрузить логотип магазина"""
+    # Проверяем что магазин принадлежит пользователю
+    result = await db.execute(
+        select(StoreOwner).where(
+            and_(
+                StoreOwner.id == store_id,
+                StoreOwner.owner_id == user.id
+            )
+        )
+    )
+    store = result.scalar_one_or_none()
+    
+    if not store:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Магазин не найден"
+        )
+    
+    # Проверяем тип файла
+    if not file.content_type.startswith('image/'):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Файл должен быть изображением"
+        )
+    
+    # Создаем директорию для логотипов если её нет
+    upload_dir = "uploads/stores/logos"
+    os.makedirs(upload_dir, exist_ok=True)
+    
+    # Генерируем уникальное имя файла
+    file_extension = os.path.splitext(file.filename)[1]
+    unique_filename = f"{uuid.uuid4()}{file_extension}"
+    file_path = os.path.join(upload_dir, unique_filename)
+    
+    # Сохраняем файл
+    contents = await file.read()
+    with open(file_path, "wb") as f:
+        f.write(contents)
+    
+    # Оптимизируем изображение
+    try:
+        optimized_path = ImageService.optimize_image(file_path, max_size=(400, 400))
+        # Удаляем оригинал
+        if os.path.exists(file_path):
+            os.remove(file_path)
+        file_path = optimized_path
+    except Exception as e:
+        print(f"Ошибка оптимизации: {e}")
+    
+    # Обновляем путь к логотипу в БД
+    logo_url = f"/{file_path}"
+    store.logo = logo_url
+    await db.commit()
+    
+    return {"logo_url": logo_url}

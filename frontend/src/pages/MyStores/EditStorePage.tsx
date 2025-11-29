@@ -34,9 +34,12 @@ export const EditStorePage = () => {
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
   const [description, setDescription] = useState('');
+  const [logo, setLogo] = useState<string | null>(null);
+  const [logoFile, setLogoFile] = useState<File | null>(null);
 
   // Состояние
   const [loading, setLoading] = useState(false);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
   const [error, setError] = useState('');
 
   // Загрузка данных магазина
@@ -61,8 +64,38 @@ export const EditStorePage = () => {
       setPhone(store.phone || '');
       setEmail(store.email || '');
       setDescription(store.description || '');
+      setLogo(store.logo || null);
     }
   }, [store]);
+
+  // Загрузка логотипа
+  const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Проверка типа
+      if (!file.type.startsWith('image/')) {
+        setError('Выберите изображение');
+        return;
+      }
+      // Проверка размера (макс 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        setError('Размер файла не должен превышать 5MB');
+        return;
+      }
+      setLogoFile(file);
+      // Превью
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setLogo(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleRemoveLogo = () => {
+    setLogo(null);
+    setLogoFile(null);
+  };
 
   // Обновление магазина
   const handleUpdateStore = async () => {
@@ -84,6 +117,39 @@ export const EditStorePage = () => {
     setLoading(true);
 
     try {
+      // Если есть новый логотип - загружаем его
+      let logoUrl = store?.logo;
+      if (logoFile) {
+        setUploadingLogo(true);
+        const formData = new FormData();
+        formData.append('file', logoFile);
+        try {
+          const response = await fetch(`http://localhost:8000/api/my-stores/${storeId}/logo`, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+            },
+            body: formData,
+          });
+          if (response.ok) {
+            const data = await response.json();
+            logoUrl = data.logo_url;
+            // Обновляем локальное состояние
+            if (logoUrl) {
+              setLogo(logoUrl);
+            }
+            setLogoFile(null);
+            // Инвалидируем кэш магазина
+            await queryClient.invalidateQueries({ queryKey: ['store', storeId] });
+            await queryClient.invalidateQueries({ queryKey: ['my-stores'] });
+          }
+        } catch (err) {
+          console.error('Ошибка загрузки логотипа:', err);
+        } finally {
+          setUploadingLogo(false);
+        }
+      }
+
       await myStoresApi.updateStore(storeId!, {
         inn,
         name,
@@ -96,9 +162,12 @@ export const EditStorePage = () => {
         ogrn: ogrn || undefined,
       });
 
-      // Инвалидируем кэш
+      // Инвалидируем кэш и ждем обновления данных
       await queryClient.invalidateQueries({ queryKey: ['my-stores'] });
       await queryClient.invalidateQueries({ queryKey: ['store', storeId] });
+      
+      // Принудительно перезагружаем данные
+      await queryClient.refetchQueries({ queryKey: ['my-stores'] });
 
       // Успешно обновлен - переходим к списку магазинов
       navigate('/my-stores');
@@ -131,6 +200,45 @@ export const EditStorePage = () => {
         </div>
 
         <div className="create-store-form">
+          {/* Логотип */}
+          <div className="form-section">
+            <h2><span className="section-icon">🖼️</span> Логотип магазина</h2>
+            
+            <div className="logo-upload-section">
+              {logo ? (
+                <div className="logo-preview">
+                  <img 
+                    src={logo.startsWith('http') || logo.startsWith('data:') ? logo : `http://localhost:8000${logo}`} 
+                    alt="Логотип" 
+                  />
+                  <Button
+                    icon="trash"
+                    stylingMode="text"
+                    onClick={handleRemoveLogo}
+                    disabled={loading}
+                    hint="Удалить логотип"
+                  />
+                </div>
+              ) : (
+                <div className="logo-upload-placeholder">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleLogoChange}
+                    style={{ display: 'none' }}
+                    id="logo-upload"
+                    disabled={loading}
+                  />
+                  <label htmlFor="logo-upload" className="logo-upload-label">
+                    <div className="upload-icon">📷</div>
+                    <div className="upload-text">Загрузить логотип</div>
+                    <div className="upload-hint">JPG, PNG до 5MB</div>
+                  </label>
+                </div>
+              )}
+            </div>
+          </div>
+
           {/* Основные данные */}
           <div className="form-section">
             <h2><span className="section-icon">📋</span> Основные данные</h2>

@@ -52,39 +52,46 @@ export default function MapPage() {
     console.log('📏 Размеры:', mapContainer.current.offsetWidth, 'x', mapContainer.current.offsetHeight)
 
     try {
-      // Создаем карту с Google Maps подложкой
+      // Создаем карту с базовым стилем Mapbox (быстро загружается)
       const mapInstance = new mapboxgl.Map({
         container: mapContainer.current,
-        style: {
-          version: 8,
-          // Используем Mapbox glyphs (работает с токеном)
-          glyphs: 'mapbox://fonts/mapbox/{fontstack}/{range}.pbf',
-          sources: {
-            'google-tiles': {
-              type: 'raster',
-              tiles: [
-                'https://mt0.google.com/maps/vt?lyrs=m@189&gl=cn&x={x}&y={y}&z={z}',
-                'https://mt1.google.com/maps/vt?lyrs=m@189&gl=cn&x={x}&y={y}&z={z}',
-                'https://mt2.google.com/maps/vt?lyrs=m@189&gl=cn&x={x}&y={y}&z={z}',
-                'https://mt3.google.com/maps/vt?lyrs=m@189&gl=cn&x={x}&y={y}&z={z}'
-              ],
-              tileSize: 256,
-              attribution: '© Google Maps'
-            }
-          },
-          layers: [
-            {
-              id: 'google-tiles-layer',
-              type: 'raster',
-              source: 'google-tiles',
-              minzoom: 0,
-              maxzoom: 22
-            }
-          ]
-        },
+        style: 'mapbox://styles/mapbox/streets-v12', // Быстрый базовый стиль
         center: [37.6173, 55.7558], // Москва
         zoom: 10,
         attributionControl: true
+      })
+
+      // После загрузки базового стиля подгружаем Google tiles
+      mapInstance.on('load', () => {
+        // Скрываем все базовые слои Mapbox
+        const style = mapInstance.getStyle()
+        if (style && style.layers) {
+          style.layers.forEach((layer) => {
+            mapInstance.setLayoutProperty(layer.id, 'visibility', 'none')
+          })
+        }
+
+        // Добавляем Google tiles как источник
+        mapInstance.addSource('google-tiles', {
+          type: 'raster',
+          tiles: [
+            'https://mt0.google.com/maps/vt?lyrs=m@189&gl=ru&x={x}&y={y}&z={z}',
+            'https://mt1.google.com/maps/vt?lyrs=m@189&gl=ru&x={x}&y={y}&z={z}',
+            'https://mt2.google.com/maps/vt?lyrs=m@189&gl=ru&x={x}&y={y}&z={z}',
+            'https://mt3.google.com/maps/vt?lyrs=m@189&gl=ru&x={x}&y={y}&z={z}'
+          ],
+          tileSize: 256,
+          attribution: '© Google Maps'
+        })
+
+        // Добавляем слой Google tiles
+        mapInstance.addLayer({
+          id: 'google-tiles-layer',
+          type: 'raster',
+          source: 'google-tiles',
+          minzoom: 0,
+          maxzoom: 22
+        })
       })
 
       map.current = mapInstance
