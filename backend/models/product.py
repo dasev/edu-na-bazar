@@ -63,7 +63,7 @@ class Product(Base):
     # Relationships
     category = relationship("Category", back_populates="products")
     store_owner = relationship("StoreOwner", back_populates="products")
-    images = relationship("ProductImage", back_populates="product", cascade="all, delete-orphan", lazy="selectin")
+    images = relationship("ProductImage", back_populates="product", cascade="all, delete-orphan", lazy="selectin", order_by="ProductImage.sort_order")
     cart_items = relationship("CartItem", back_populates="product")
     order_items = relationship("OrderItem", back_populates="product")
     product_reviews = relationship("ProductReview", back_populates="product", cascade="all, delete-orphan", lazy="noload")

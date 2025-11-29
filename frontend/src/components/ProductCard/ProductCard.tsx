@@ -20,11 +20,12 @@ interface ProductCardProps {
     longitude?: number
   }
   showManageButtons?: boolean
+  hideButtons?: boolean  // Полностью скрыть все кнопки
   onEdit?: () => void
   onDelete?: () => void
 }
 
-export default function ProductCard({ product, showManageButtons = false, onEdit, onDelete }: ProductCardProps) {
+export default function ProductCard({ product, showManageButtons = false, hideButtons = false, onEdit, onDelete }: ProductCardProps) {
   const navigate = useNavigate()
   const { addToCart } = useCartStore()
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
@@ -128,55 +129,57 @@ export default function ProductCard({ product, showManageButtons = false, onEdit
       </div>
       
       {/* Кнопки */}
-      {showManageButtons ? (
-        <div style={{ display: 'flex', gap: '8px', width: '100%' }}>
-          <Button
-            text="Редактировать"
-            icon="edit"
-            type="default"
-            height={44}
-            onClick={onEdit}
-            style={{ flex: 1 }}
-          />
-          <Button
-            text="Удалить"
-            icon="trash"
-            type="danger"
-            height={44}
-            onClick={onDelete}
-            style={{ flex: 1 }}
-          />
-        </div>
-      ) : (
-        <div style={{ display: 'flex', gap: '8px', width: '100%' }}>
-          <Button
-            text="В корзину"
-            type="default"
-            height={44}
-            className="product-card__button"
-            onClick={handleAddToCart}
-            style={{ flex: 1 }}
-          />
-          {product.latitude && product.longitude && (
+      {!hideButtons && (
+        showManageButtons ? (
+          <div style={{ display: 'flex', gap: '8px', width: '100%' }}>
             <Button
-              icon="map"
+              text="Редактировать"
+              icon="edit"
               type="default"
               height={44}
-              hint="Показать на карте"
-              onClick={() => {
-                // Сохраняем ID товара и координаты в localStorage
-                localStorage.setItem('mapFocusProduct', JSON.stringify({
-                  id: product.id,
-                  lat: product.latitude,
-                  lng: product.longitude
-                }))
-                // Переходим на карту
-                window.location.href = '/map'
-              }}
-              style={{ width: '44px', minWidth: '44px' }}
+              onClick={onEdit}
+              style={{ flex: 1 }}
             />
-          )}
-        </div>
+            <Button
+              text="Удалить"
+              icon="trash"
+              type="danger"
+              height={44}
+              onClick={onDelete}
+              style={{ flex: 1 }}
+            />
+          </div>
+        ) : (
+          <div style={{ display: 'flex', gap: '8px', width: '100%' }}>
+            <Button
+              text="В корзину"
+              type="default"
+              height={44}
+              className="product-card__button"
+              onClick={handleAddToCart}
+              style={{ flex: 1 }}
+            />
+            {product.latitude && product.longitude && (
+              <Button
+                icon="map"
+                type="default"
+                height={44}
+                hint="Показать на карте"
+                onClick={() => {
+                  // Сохраняем ID товара и координаты в localStorage
+                  localStorage.setItem('mapFocusProduct', JSON.stringify({
+                    id: product.id,
+                    lat: product.latitude,
+                    lng: product.longitude
+                  }))
+                  // Переходим на карту
+                  window.location.href = '/map'
+                }}
+                style={{ width: '44px', minWidth: '44px' }}
+              />
+            )}
+          </div>
+        )
       )}
     </div>
   )

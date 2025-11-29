@@ -202,8 +202,7 @@ async def create_store_product(
                 product_image = ProductImage(
                     product_id=product.id,
                     image_url=img_url,
-                    is_main=(idx == 0),  # Первое изображение - основное
-                    sort_order=idx
+                    sort_order=idx  # Порядок изображений (0 = первое)
                 )
                 db.add(product_image)
     
@@ -259,12 +258,19 @@ async def update_store_product(
     # Обновляем товар
     update_data = product_data.model_dump(exclude_unset=True)
     
+    print(f"📝 Обновление товара {product_id}")
+    print(f"  Полученные данные: {update_data}")
+    print(f"  Текущая цена в БД: {product.price}")
+    
     # Обрабатываем массив изображений отдельно
     images_urls = update_data.pop('images', None)
     
     # Обновляем остальные поля
     for field, value in update_data.items():
+        print(f"  Обновляем {field}: {getattr(product, field, None)} -> {value}")
         setattr(product, field, value)
+    
+    print(f"  Новая цена после обновления: {product.price}")
     
     # Если есть массив изображений, обновляем таблицу product_images
     if images_urls is not None and isinstance(images_urls, list):
@@ -279,8 +285,7 @@ async def update_store_product(
                 product_image = ProductImage(
                     product_id=product_id,
                     image_url=img_url,
-                    is_main=(idx == 0),  # Первое изображение - основное
-                    sort_order=idx
+                    sort_order=idx  # Порядок изображений (0 = первое)
                 )
                 db.add(product_image)
     

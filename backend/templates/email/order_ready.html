@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block title %}Заказ #{{ order_id }} готов к выдаче{% endblock %}
+{% block header_text %}Ваш заказ готов!{% endblock %}
+
+{% block content %}
+<p>Здравствуйте, <strong>{{ customer_name }}</strong>!</p>
+
+<p>🎉 Ваш заказ готов к выдаче! Вы можете забрать его в магазине <strong>{{ store_name }}</strong>.</p>
+
+<div class="order-info">
+    <h3>Информация о заказе</h3>
+    <div class="info-row">
+        <span class="info-label">Номер заказа:</span>
+        <span class="info-value">#{{ order_id }}</span>
+    </div>
+    <div class="info-row">
+        <span class="info-label">Статус:</span>
+        <span class="status-badge status-ready">Готов к выдаче</span>
+    </div>
+    <div class="info-row">
+        <span class="info-label">Сумма к оплате:</span>
+        <span class="info-value">{{ total_amount }} ₽</span>
+    </div>
+    {% if store_address %}
+    <div class="info-row">
+        <span class="info-label">Адрес магазина:</span>
+        <span class="info-value">{{ store_address }}</span>
+    </div>
+    {% endif %}
+    {% if store_phone %}
+    <div class="info-row">
+        <span class="info-label">Телефон магазина:</span>
+        <span class="info-value">{{ store_phone }}</span>
+    </div>
+    {% endif %}
+</div>
+
+<p>Пожалуйста, возьмите с собой номер заказа для получения.</p>
+
+<p style="text-align: center;">
+    <a href="http://localhost:3000/orders/{{ order_id }}" class="button">Посмотреть заказ</a>
+</p>
+{% endblock %}

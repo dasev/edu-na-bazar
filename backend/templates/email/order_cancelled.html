@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block title %}Заказ #{{ order_id }} отменен{% endblock %}
+{% block header_text %}Заказ отменен{% endblock %}
+
+{% block content %}
+<p>Здравствуйте, <strong>{{ customer_name }}</strong>!</p>
+
+<p>К сожалению, ваш заказ #{{ order_id }} был отменен.</p>
+
+<div class="order-info">
+    <h3>Информация о заказе</h3>
+    <div class="info-row">
+        <span class="info-label">Номер заказа:</span>
+        <span class="info-value">#{{ order_id }}</span>
+    </div>
+    <div class="info-row">
+        <span class="info-label">Статус:</span>
+        <span class="status-badge status-cancelled">Отменен</span>
+    </div>
+    {% if cancellation_reason %}
+    <div class="info-row">
+        <span class="info-label">Причина отмены:</span>
+        <span class="info-value">{{ cancellation_reason }}</span>
+    </div>
+    {% endif %}
+</div>
+
+<p>Если у вас есть вопросы, пожалуйста, свяжитесь с магазином <strong>{{ store_name }}</strong>.</p>
+
+<p style="text-align: center;">
+    <a href="http://localhost:3000/catalog" class="button">Продолжить покупки</a>
+</p>
+{% endblock %}

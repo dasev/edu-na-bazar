@@ -73,6 +73,7 @@ class ProductResponse(BaseModel):
     images: List[ProductImageSchema] = []  # Все изображения товара
     latitude: Optional[float] = None  # Широта для карты
     longitude: Optional[float] = None  # Долгота для карты
+    location: Optional[str] = None  # Текстовый адрес
     
     class Config:
         from_attributes = True

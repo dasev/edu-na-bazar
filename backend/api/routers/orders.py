@@ -6,11 +6,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
 from typing import Optional
 from datetime import datetime
+import asyncio
 
 from database import get_db
 from models.order import Order, OrderItem
 from models.product import Product
+from models.product_image import ProductImage
 from models.user import User
+from models.store_owner import StoreOwner
 from schemas.order import (
     OrderCreate,
     OrderUpdateStatus,
@@ -18,8 +21,141 @@ from schemas.order import (
     OrderListResponse,
 )
 from api.dependencies import get_current_user  # Используем стандартный get_current_user
+from services.email_service import email_service
 
 router = APIRouter()
+
+
+async def send_order_created_emails(order_dict: dict, user_data: dict):
+    """Отправка email уведомлений при создании заказа"""
+    # Создаем новую сессию БД для асинхронной задачи
+    from database import AsyncSessionLocal
+    
+    async with AsyncSessionLocal() as db:
+        try:
+            print(f"📧 Начинаем отправку email для заказа #{order_dict['id']}")
+            print(f"   Пользователь: {user_data['full_name']}, Email: {user_data['email']}")
+            
+            # Получаем товары для email
+            items_data = []
+            store_id = None
+            
+            for item in order_dict['items']:
+                result = await db.execute(
+                    select(Product).where(Product.id == item['product_id'])
+                )
+                product = result.scalar_one_or_none()
+                if product:
+                    items_data.append({
+                        'name': product.name,
+                        'quantity': item['quantity'],
+                        'unit': product.unit,
+                        'price': item['price']
+                    })
+                    if not store_id and product.store_owner_id:
+                        store_id = product.store_owner_id
+            
+            print(f"   Товаров в заказе: {len(items_data)}, Store ID: {store_id}")
+            
+            # Данные для шаблона
+            email_data = {
+                'order_id': order_dict['id'],
+                'customer_name': user_data['full_name'] or 'Покупатель',
+                'customer_phone': order_dict['delivery_phone'],
+                'store_name': 'Магазин',  # Заполним ниже
+                'created_at': order_dict['created_at'].strftime('%d.%m.%Y %H:%M'),
+                'delivery_address': order_dict['delivery_address'],
+                'items': items_data,
+                'total_amount': order_dict['total_amount']
+            }
+            
+            # Отправляем покупателю
+            if user_data['email']:
+                print(f"   📨 Отправляем письмо покупателю: {user_data['email']}")
+                await email_service.send_order_created(user_data['email'], email_data)
+            else:
+                print(f"   ⚠️ У пользователя нет email, пропускаем отправку покупателю")
+            
+            # Отправляем магазину
+            if store_id:
+                result = await db.execute(
+                    select(StoreOwner).where(StoreOwner.id == store_id)
+                )
+                store = result.scalar_one_or_none()
+                if store:
+                    email_data['store_name'] = store.store_name
+                    print(f"   Магазин: {store.store_name}, Email: {store.email}")
+                    if store.email:
+                        print(f"   📨 Отправляем письмо магазину: {store.email}")
+                        await email_service.send_new_order_to_store(store.email, email_data)
+                    else:
+                        print(f"   ⚠️ У магазина нет email, пропускаем отправку")
+                else:
+                    print(f"   ⚠️ Магазин не найден")
+            else:
+                print(f"   ⚠️ Store ID не определен")
+        except Exception as e:
+            print(f"❌ Ошибка отправки email: {e}")
+            import traceback
+            traceback.print_exc()
+
+
+async def send_order_status_email(order: Order, user: User, db: AsyncSession):
+    """Отправка email при изменении статуса заказа"""
+    try:
+        if not user.email:
+            return
+        
+        # Получаем товары
+        items_data = []
+        store_name = 'Магазин'
+        store_address = None
+        store_phone = None
+        
+        for item in order.items:
+            result = await db.execute(
+                select(Product).where(Product.id == item.product_id)
+            )
+            product = result.scalar_one_or_none()
+            if product:
+                items_data.append({
+                    'name': product.name,
+                    'quantity': item.quantity,
+                    'unit': product.unit,
+                    'price': float(item.price)
+                })
+                # Получаем информацию о магазине
+                if product.store_owner_id:
+                    store_result = await db.execute(
+                        select(StoreOwner).where(StoreOwner.id == product.store_owner_id)
+                    )
+                    store = store_result.scalar_one_or_none()
+                    if store:
+                        store_name = store.store_name
+                        store_address = store.address
+                        store_phone = store.phone
+        
+        email_data = {
+            'order_id': order.id,
+            'customer_name': user.full_name or 'Покупатель',
+            'store_name': store_name,
+            'store_address': store_address,
+            'store_phone': store_phone,
+            'total_amount': float(order.total_amount),
+            'items': items_data
+        }
+        
+        # Отправляем соответствующее уведомление
+        if order.status == 'paid':
+            await email_service.send_order_confirmed(user.email, email_data)
+        elif order.status == 'delivering':
+            await email_service.send_order_ready(user.email, email_data)
+        elif order.status == 'completed':
+            await email_service.send_order_completed(user.email, email_data)
+        elif order.status == 'cancelled':
+            await email_service.send_order_cancelled(user.email, email_data)
+    except Exception as e:
+        print(f"❌ Ошибка отправки email при изменении статуса: {e}")
 
 
 @router.get("/", response_model=OrderListResponse)
@@ -57,29 +193,66 @@ async def get_orders(
         orders = result.scalars().all()
         
         # Преобразуем в словари с загрузкой информации о товарах
+        print(f"📦 Всего заказов для обработки: {len(orders)}")
         orders_data = []
         for order in orders:
+            print(f"📋 Обрабатываем заказ #{order.id}, items: {len(order.items)}")
             # Загружаем товары для items
             items_with_products = []
             for item in order.items:
-                # Получаем товар
-                from models.product import Product
-                product_result = await db.execute(
-                    select(Product).where(Product.id == item.product_id)
-                )
-                product = product_result.scalar_one_or_none()
-                
-                items_with_products.append({
-                    "id": item.id,
-                    "order_id": item.order_id,
-                    "product_id": item.product_id,
-                    "product_name": product.name if product else f"Товар {item.product_id}",
-                    "product_image": product.image if product else None,
-                    "quantity": item.quantity,
-                    "price": float(item.price),
-                    "subtotal": item.subtotal,
-                    "created_at": item.created_at,
-                })
+                try:
+                    # Получаем товар с изображениями (lazy="selectin" в модели)
+                    product_result = await db.execute(
+                        select(Product).where(Product.id == item.product_id)
+                    )
+                    product = product_result.scalar_one_or_none()
+                    
+                    # Получаем первое изображение или основное изображение
+                    product_image = None
+                    product_name = f"Товар {item.product_id}"
+                    
+                    if product:
+                        product_name = product.name
+                        print(f"🔍 Товар {item.product_id}: {product.name}, images count: {len(product.images) if product.images else 0}")
+                        
+                        if product.images and len(product.images) > 0:
+                            # Берем первое изображение из массива
+                            product_image = product.images[0].image_url
+                            print(f"   📸 Изображение: {product_image}")
+                        elif product.image:
+                            # Fallback на старое поле image
+                            product_image = product.image
+                            print(f"   📸 Fallback изображение: {product_image}")
+                        else:
+                            print(f"   ⚠️ Нет изображений")
+                    
+                    items_with_products.append({
+                        "id": item.id,
+                        "order_id": item.order_id,
+                        "product_id": item.product_id,
+                        "product_name": product_name,
+                        "product_image": product_image,
+                        "quantity": item.quantity,
+                        "price": float(item.price),
+                        "subtotal": item.subtotal,
+                        "created_at": item.created_at,
+                    })
+                except Exception as e:
+                    print(f"❌ Ошибка загрузки товара {item.product_id}: {e}")
+                    import traceback
+                    traceback.print_exc()
+                    # Добавляем базовую информацию
+                    items_with_products.append({
+                        "id": item.id,
+                        "order_id": item.order_id,
+                        "product_id": item.product_id,
+                        "product_name": f"Товар {item.product_id}",
+                        "product_image": None,
+                        "quantity": item.quantity,
+                        "price": float(item.price),
+                        "subtotal": item.subtotal,
+                        "created_at": item.created_at,
+                    })
             
             orders_data.append({
                 "id": order.id,
@@ -132,6 +305,36 @@ async def get_order(
     if not order:
         raise HTTPException(status_code=404, detail="Заказ не найден")
     
+    # Загружаем информацию о товарах
+    items_with_products = []
+    for item in order.items:
+        product_result = await db.execute(
+            select(Product).where(Product.id == item.product_id)
+        )
+        product = product_result.scalar_one_or_none()
+        
+        # Получаем первое изображение из массива
+        product_image = None
+        if product:
+            if product.images and len(product.images) > 0:
+                product_image = product.images[0].image_url
+            elif product.image:
+                product_image = product.image
+        
+        print(f"📦 Товар {item.product_id}: name={product.name if product else 'N/A'}, image={product_image}")
+        
+        items_with_products.append({
+            "id": item.id,
+            "order_id": item.order_id,
+            "product_id": item.product_id,
+            "product_name": product.name if product else f"Товар {item.product_id}",
+            "product_image": product_image,
+            "quantity": item.quantity,
+            "price": float(item.price),
+            "subtotal": item.subtotal,
+            "created_at": item.created_at,
+        })
+    
     # Преобразуем в словарь
     order_dict = {
         "id": order.id,
@@ -145,18 +348,7 @@ async def get_order(
         "notes": order.notes,
         "created_at": order.created_at,
         "updated_at": order.updated_at,
-        "items": [
-            {
-                "id": item.id,
-                "order_id": item.order_id,
-                "product_id": item.product_id,
-                "quantity": item.quantity,
-                "price": float(item.price),
-                "subtotal": item.subtotal,
-                "created_at": item.created_at,
-            }
-            for item in order.items
-        ]
+        "items": items_with_products
     }
     
     return order_dict
@@ -266,6 +458,17 @@ async def create_order(
         }
         
         print(f"✅ Order created: {order_dict['id']}")
+        
+        # Подготавливаем данные пользователя для email (чтобы избежать DetachedInstanceError)
+        user_data = {
+            'id': user.id,
+            'email': user.email,
+            'full_name': user.full_name
+        }
+        
+        # Отправляем email уведомления асинхронно (не блокируем ответ)
+        asyncio.create_task(send_order_created_emails(order_dict, user_data))
+        
         return order_dict
     except Exception as e:
         print(f"❌ Error creating order: {e}")
@@ -290,6 +493,7 @@ async def update_order_status(
     if not order:
         raise HTTPException(status_code=404, detail="Заказ не найден")
     
+    old_status = order.status
     order.status = status_data.status
     
     if status_data.status == "completed":
@@ -303,5 +507,15 @@ async def update_order_status(
         select(OrderItem).where(OrderItem.order_id == order.id)
     )
     order.items = items_result.scalars().all()
+    
+    # Отправляем email если статус изменился
+    if old_status != status_data.status:
+        # Получаем пользователя
+        user_result = await db.execute(
+            select(User).where(User.id == order.user_id)
+        )
+        order_user = user_result.scalar_one_or_none()
+        if order_user:
+            asyncio.create_task(send_order_status_email(order, order_user, db))
     
     return order

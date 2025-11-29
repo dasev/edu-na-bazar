@@ -172,7 +172,12 @@ export const OrdersPage = () => {
         {!isLoading && !error && filteredOrders.length > 0 && (
           <div className="orders-list">
             {filteredOrders.map((order: Order) => (
-              <div key={order.id} className="order-card">
+              <div 
+                key={order.id} 
+                className="order-card"
+                onClick={() => navigate(`/orders/${order.id}`)}
+                style={{ cursor: 'pointer' }}
+              >
                 <div className="order-header">
                   <div className="order-info">
                     <div className="order-number">Заказ №{order.id}</div>
@@ -202,14 +207,28 @@ export const OrdersPage = () => {
                 {order.items && order.items.length > 0 && (
                   <div className="order-items">
                     {order.items.map((item: any) => (
-                      <div key={item.id} className="order-item">
-                        {item.product_image && (
-                          <img
-                            src={item.product_image.startsWith('http') ? item.product_image : `http://localhost:8000${item.product_image}`}
-                            alt={item.product_name || 'Товар'}
-                            className="order-item-image"
-                          />
-                        )}
+                      <div 
+                        key={item.id} 
+                        className="order-item"
+                        onClick={(e) => {
+                          e.stopPropagation() // Предотвращаем переход к деталям заказа
+                          navigate(`/product/${item.product_id}`)
+                        }}
+                      >
+                        <div className="order-item-image-wrapper">
+                          {item.product_image ? (
+                            <img
+                              src={item.product_image.startsWith('http') ? item.product_image : `http://localhost:8000${item.product_image}`}
+                              alt={item.product_name || 'Товар'}
+                              className="order-item-image"
+                              onError={(e) => {
+                                (e.target as HTMLImageElement).src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="60" height="60"%3E%3Crect fill="%23f0f0f0" width="60" height="60"/%3E%3Ctext fill="%23999" x="50%25" y="50%25" dominant-baseline="middle" text-anchor="middle" font-size="10"%3EНет фото%3C/text%3E%3C/svg%3E'
+                              }}
+                            />
+                          ) : (
+                            <div className="order-item-no-image">📦</div>
+                          )}
+                        </div>
                         <div className="order-item-info">
                           <div className="order-item-name">{item.product_name || `Товар ${item.product_id}`}</div>
                           <div className="order-item-quantity">

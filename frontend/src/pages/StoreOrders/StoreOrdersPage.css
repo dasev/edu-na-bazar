@@ -132,8 +132,16 @@
   display: flex;
   gap: 12px;
   align-items: center;
-  padding: 12px 0;
+  padding: 12px;
   border-bottom: 1px solid #eee;
+  border-radius: 8px;
+  transition: all 0.2s;
+}
+
+.order-item:hover {
+  background: white;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.1);
+  transform: translateX(4px);
 }
 
 .order-item:last-child {
@@ -186,15 +194,18 @@
 }
 
 .total-label {
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 500;
   color: #666;
 }
 
 .total-value {
-  font-size: 20px;
-  font-weight: 700;
-  color: #667eea;
+  font-size: 16px !important;
+  font-weight: 600 !important;
+  color: #1a202c !important;
+  background: none !important;
+  -webkit-background-clip: unset !important;
+  -webkit-text-fill-color: #1a202c !important;
 }
 
 .order-actions {

@@ -181,7 +181,12 @@ export default function StoreOrdersPage() {
       ) : (
         <div className="orders-list">
           {orders.map((order: Order) => (
-            <div key={order.id} className="order-card">
+            <div 
+              key={order.id} 
+              className="order-card"
+              onClick={() => navigate(`/orders/${order.id}`)}
+              style={{ cursor: 'pointer' }}
+            >
               <div className="order-header">
                 <div className="order-info">
                   <div className="order-number">Заказ №{order.id}</div>
@@ -222,7 +227,15 @@ export default function StoreOrdersPage() {
                 <div className="order-items">
                   <h4>Товары:</h4>
                   {order.items.map((item) => (
-                    <div key={item.id} className="order-item">
+                    <div 
+                      key={item.id} 
+                      className="order-item"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        navigate(`/product/${item.product_id}`)
+                      }}
+                      style={{ cursor: 'pointer' }}
+                    >
                       {item.product_image && (
                         <img 
                           src={item.product_image.startsWith('http') ? item.product_image : `http://localhost:8000${item.product_image}`}

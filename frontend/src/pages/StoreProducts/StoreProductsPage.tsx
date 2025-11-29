@@ -175,7 +175,7 @@ export default function StoreProductsPage() {
             <div key={product.id} style={{ position: 'relative' }}>
               <ProductCard 
                 product={product}
-                showManageButtons={false}
+                hideButtons={true}
               />
               <div className="product-manage-buttons">
                 <Button

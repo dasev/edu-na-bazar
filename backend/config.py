@@ -54,6 +54,19 @@ class Settings:
     
     # SMS (для разработки отключаем реальную отправку)
     SMS_ENABLED: bool = os.getenv("SMS_ENABLED", "false").lower() == "true"
+    
+    # Email Settings
+    MAIL_USERNAME: str = os.getenv("MAIL_USERNAME", "noreply@edu-na-bazar.ru")
+    MAIL_PASSWORD: str = os.getenv("MAIL_PASSWORD", "")
+    MAIL_FROM: str = os.getenv("MAIL_FROM", "noreply@edu-na-bazar.ru")
+    MAIL_FROM_NAME: str = os.getenv("MAIL_FROM_NAME", "Еду на базар")
+    MAIL_PORT: int = int(os.getenv("MAIL_PORT", "587"))
+    MAIL_SERVER: str = os.getenv("MAIL_SERVER", "smtp.yandex.ru")
+    MAIL_STARTTLS: bool = os.getenv("MAIL_STARTTLS", "true").lower() == "true"
+    MAIL_SSL_TLS: bool = os.getenv("MAIL_SSL_TLS", "false").lower() == "true"
+    MAIL_USE_CREDENTIALS: bool = os.getenv("MAIL_USE_CREDENTIALS", "true").lower() == "true"
+    MAIL_VALIDATE_CERTS: bool = os.getenv("MAIL_VALIDATE_CERTS", "true").lower() == "true"
+    MAIL_ENABLED: bool = os.getenv("MAIL_ENABLED", "false").lower() == "true"  # Для разработки
 
 
 settings = Settings()

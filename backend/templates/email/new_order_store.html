@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block title %}Новый заказ #{{ order_id }}{% endblock %}
+{% block header_text %}У вас новый заказ!{% endblock %}
+
+{% block content %}
+<p>Здравствуйте, <strong>{{ store_name }}</strong>!</p>
+
+<p>🎉 Вы получили новый заказ от покупателя <strong>{{ customer_name }}</strong>.</p>
+
+<div class="order-info">
+    <h3>Информация о заказе</h3>
+    <div class="info-row">
+        <span class="info-label">Номер заказа:</span>
+        <span class="info-value">#{{ order_id }}</span>
+    </div>
+    <div class="info-row">
+        <span class="info-label">Дата оформления:</span>
+        <span class="info-value">{{ created_at }}</span>
+    </div>
+    <div class="info-row">
+        <span class="info-label">Покупатель:</span>
+        <span class="info-value">{{ customer_name }}</span>
+    </div>
+    <div class="info-row">
+        <span class="info-label">Телефон:</span>
+        <span class="info-value">{{ customer_phone }}</span>
+    </div>
+    <div class="info-row">
+        <span class="info-label">Адрес доставки:</span>
+        <span class="info-value">{{ delivery_address }}</span>
+    </div>
+</div>
+
+<div class="items-list">
+    <h3>Состав заказа:</h3>
+    {% for item in items %}
+    <div class="item">
+        <span class="item-name">{{ item.name }}</span>
+        <span class="item-quantity">{{ item.quantity }} {{ item.unit }}</span>
+        <span class="item-price">{{ item.price }} ₽</span>
+    </div>
+    {% endfor %}
+</div>
+
+<div class="total">
+    Итого: {{ total_amount }} ₽
+</div>
+
+<p><strong>Пожалуйста, подтвердите заказ в личном кабинете.</strong></p>
+
+<p style="text-align: center;">
+    <a href="http://localhost:3000/my-stores/orders/{{ order_id }}" class="button">Открыть заказ</a>
+</p>
+{% endblock %}

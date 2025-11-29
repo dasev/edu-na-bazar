@@ -91,14 +91,18 @@
   gap: 8px;
   opacity: 0;
   transition: opacity 0.3s;
+  z-index: 10;
+  pointer-events: none;
 }
 
 .products-grid > div:hover .product-manage-buttons {
   opacity: 1;
+  pointer-events: auto;
 }
 
 .product-manage-buttons .dx-button {
   flex: 1;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 /* Стили кнопок */

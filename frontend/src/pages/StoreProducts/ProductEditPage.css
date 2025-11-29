@@ -32,6 +32,8 @@
   background: #f8f9fa;
   border-radius: 8px;
   flex-wrap: wrap; /* Перенос на новую строку при нехватке места */
+  overflow: visible; /* Не обрезаем содержимое */
+  align-items: flex-start; /* Выравнивание по верху */
 }
 
 .preview-gallery {
@@ -47,24 +49,40 @@
   width: 80px;
 }
 
+.drag-hint {
+  text-align: center;
+  font-size: 11px;
+  color: #999;
+  padding: 5px;
+  user-select: none;
+}
+
 .thumbnail {
   position: relative;
   width: 80px;
   height: 80px;
-  border: 2px solid #ddd;
+  border: 2px solid #e0e0e0;
   border-radius: 8px;
   overflow: hidden;
-  cursor: pointer;
-  transition: border-color 0.2s;
+  cursor: grab;
+  transition: all 0.3s;
 }
 
 .thumbnail:hover {
-  border-color: #999;
+  border-color: #667eea;
+  transform: scale(1.05);
 }
 
 .thumbnail.active {
-  border-color: #4CAF50;
-  border-width: 3px;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+}
+
+.thumbnail.dragging {
+  opacity: 0.5;
+  cursor: grabbing;
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 .thumbnail img {
@@ -118,7 +136,9 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
+  min-width: 0; /* Позволяет flex-элементу сжиматься */
+  overflow: visible; /* Убеждаемся что контент не обрезается */
 }
 
 .preview-info h3 {

@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from 'react'
 import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import './MapPage.css'
-import axios from 'axios'
+// Используем fetch вместо axios
 import { useCartStore } from '../../store/cartStore'
 import { showToast } from '../../utils/toast'
 import { useFiltersStore } from '../../store/filtersStore'
@@ -139,8 +139,9 @@ export default function MapPage() {
           if (filters.in_stock !== undefined) params.append('in_stock', filters.in_stock.toString())
           params.append('limit', '5000') // Загружаем больше товаров для карты
           
-          const response = await axios.get(`${API_URL}/api/products/map/geojson?${params.toString()}`)
-          const geojson = response.data
+          const response = await fetch(`${API_URL}/api/products/map/geojson?${params.toString()}`)
+          if (!response.ok) throw new Error('Failed to fetch products')
+          const geojson = await response.json()
           
           console.log('✅ Загружено товаров:', geojson.features.length)
 
@@ -937,8 +938,9 @@ export default function MapPage() {
         if (filters.in_stock !== undefined) params.append('in_stock', filters.in_stock.toString())
         params.append('limit', '5000')
         
-        const response = await axios.get(`${API_URL}/api/products/map/geojson?${params.toString()}`)
-        const geojson = response.data
+        const response = await fetch(`${API_URL}/api/products/map/geojson?${params.toString()}`)
+        if (!response.ok) throw new Error('Failed to fetch products')
+        const geojson = await response.json()
         
         console.log('✅ Обновлено товаров:', geojson.features.length)
         

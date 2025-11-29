@@ -37,6 +37,8 @@ class OrderItemResponse(BaseModel):
     id: int
     order_id: int
     product_id: int
+    product_name: Optional[str] = None  # Название товара
+    product_image: Optional[str] = None  # Изображение товара
     quantity: int
     price: float
     subtotal: float
