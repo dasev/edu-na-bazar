@@ -150,6 +150,15 @@
   min-height: 200px;
 }
 
+/* Убираем водяные знаки Mapbox */
+.location-mini-map .mapboxgl-ctrl-logo,
+.location-mini-map .mapboxgl-ctrl-attrib,
+.location-mini-map .mapboxgl-compact {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+}
+
 /* Адаптивность */
 @media (max-width: 768px) {
   .product-page__seller-section {

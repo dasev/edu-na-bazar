@@ -15,8 +15,6 @@ import { useCartStore } from '../../store/cartStore'
 import { showToast } from '../../utils/toast'
 import ProductReviews from '../../components/ProductReviews/ProductReviews'
 import './ProductPage.css'
-import axios from 'axios'
-
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
 mapboxgl.accessToken = 'pk.eyJ1Ijoic2VyZ2VqZGFuNDUyIiwiYSI6ImNtaTd0dzQ4ajA0bHkyanIyNWJwa2JrNXYifQ.AWJBOIEEXVb-6AIKrbRXmw'
 
@@ -37,12 +35,14 @@ export default function ProductPage() {
     enabled: !!id,
   })
 
-  // Запрос данных о магазине
+  // Запрос данных о магазине через API клиент
   const { data: storeOwner } = useQuery({
     queryKey: ['store-owner', product?.store_owner_id],
     queryFn: async () => {
-      const response = await axios.get(`${API_URL}/api/store-owners/${product?.store_owner_id}`)
-      return response.data
+      if (!product?.store_owner_id) return null
+      const response = await fetch(`${API_URL}/api/store-owners/${product.store_owner_id}`)
+      if (!response.ok) throw new Error('Failed to fetch store owner')
+      return response.json()
     },
     enabled: !!product?.store_owner_id,
   })
@@ -53,11 +53,44 @@ export default function ProductPage() {
 
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
-      style: 'mapbox://styles/mapbox/streets-v12',
+      style: {
+        version: 8,
+        glyphs: 'mapbox://fonts/mapbox/{fontstack}/{range}.pbf',
+        sources: {
+          'google-tiles': {
+            type: 'raster',
+            tiles: [
+              'https://mt0.google.com/maps/vt?lyrs=m@189&gl=cn&x={x}&y={y}&z={z}',
+              'https://mt1.google.com/maps/vt?lyrs=m@189&gl=cn&x={x}&y={y}&z={z}',
+              'https://mt2.google.com/maps/vt?lyrs=m@189&gl=cn&x={x}&y={y}&z={z}',
+              'https://mt3.google.com/maps/vt?lyrs=m@189&gl=cn&x={x}&y={y}&z={z}'
+            ],
+            tileSize: 256,
+            attribution: ''
+          }
+        },
+        layers: [
+          {
+            id: 'google-tiles-layer',
+            type: 'raster',
+            source: 'google-tiles',
+            minzoom: 0,
+            maxzoom: 22
+          }
+        ]
+      },
       center: [product.longitude, product.latitude],
       zoom: 13,
-      interactive: false // Отключаем взаимодействие для мини-карты
+      interactive: true, // Включаем взаимодействие (скролл, зум, перемещение)
+      attributionControl: false, // Убираем водяные знаки Mapbox
+      logoPosition: 'bottom-right' // Позиция логотипа (если нужно)
     })
+    
+    // Убираем логотип Mapbox
+    const mapboxLogo = mapContainer.current.querySelector('.mapboxgl-ctrl-logo')
+    if (mapboxLogo) {
+      (mapboxLogo as HTMLElement).style.display = 'none'
+    }
 
     // Добавляем маркер
     new mapboxgl.Marker({ color: '#667eea' })
